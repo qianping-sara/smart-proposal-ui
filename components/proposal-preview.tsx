@@ -854,7 +854,7 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
 
                   {/* Part 2 */}
                   <div>
-                    <h4 className="text-sm font-semibold text-black mb-2">Custom services</h4>
+                    <h4 className="text-sm font-semibold text-black mb-2">FEE PROPOSAL</h4>
                     <div className="overflow-x-auto rounded border border-gray-200">
                       <table className="w-full text-xs">
                         <thead>

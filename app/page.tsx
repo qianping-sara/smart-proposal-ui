@@ -235,13 +235,13 @@ export default function Page() {
         const duplicated = selectedDescriptions.filter((d) => existingSet.has(normalizeDescription(d)))
         if (toAdd.length === 0 && duplicated.length > 0) {
           serviceAddReplyRef.current =
-            'The Custom services table already has the selected service(s); no duplicates added.'
+            'The FEE PROPOSAL table already has the selected service(s); no duplicates added.'
         } else if (toAdd.length > 0 && duplicated.length > 0) {
           serviceAddReplyRef.current =
             'Some items were already in the table. Only the new service(s) have been added.'
         } else if (toAdd.length > 0) {
           serviceAddReplyRef.current =
-            'Done. The selected service(s) have been added to Value Added Services > Custom services. Please fill in the fee columns as needed.'
+            'Done. The selected service(s) have been added to Value Added Services > FEE PROPOSAL. Please fill in the fee columns as needed.'
         } else {
           serviceAddReplyRef.current = 'No valid selection was added.'
         }
