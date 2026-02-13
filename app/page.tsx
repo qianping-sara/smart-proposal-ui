@@ -16,6 +16,63 @@ export type DealInfo = {
   pipeline: string
   contactPerson: string
   contactEmail: string
+  contactTitle?: string
+  companyName?: string
+  companyShortName?: string
+  companyAddress?: string
+}
+
+const MOCK_DEAL_INFO_BY_CHAT: Record<string, DealInfo> = {
+  'Parable Church Ltd - Audit Proposal': {
+    dealName: 'Parable Church Ltd - Audit Proposal',
+    pipeline: 'Audit',
+    contactPerson: 'Sarah Chen',
+    contactEmail: 'sarah.chen@parablechurch.org',
+    contactTitle: 'Finance Director',
+    companyName: 'Parable Church Ltd',
+    companyShortName: 'PCL',
+    companyAddress: '12 Worship Lane, Sydney NSW 2000',
+  },
+  'Janus Electric Limited': {
+    dealName: 'Janus Electric Limited',
+    pipeline: 'Audit',
+    contactPerson: 'James Wong',
+    contactEmail: 'j.wong@januselectric.com.au',
+    contactTitle: 'CFO',
+    companyName: 'Janus Electric Limited',
+    companyShortName: 'JAN',
+    companyAddress: '45 Power Road, Melbourne VIC 3000',
+  },
+  'Viridis Green Data Centres Limited': {
+    dealName: 'Viridis Green Data Centres Limited',
+    pipeline: 'Audit',
+    contactPerson: 'Emma Liu',
+    contactEmail: 'emma.liu@viridisgreen.com',
+    contactTitle: 'Head of Finance',
+    companyName: 'Viridis Green Data Centres Limited',
+    companyShortName: 'VGDC',
+    companyAddress: '88 Green Tech Park, Brisbane QLD 4000',
+  },
+  'Omni Tanker Holdings Ltd': {
+    dealName: 'Omni Tanker Holdings Ltd',
+    pipeline: 'Audit',
+    contactPerson: 'Michael Brown',
+    contactEmail: 'm.brown@omnitanker.com',
+    contactTitle: 'Finance Manager',
+    companyName: 'Omni Tanker Holdings Ltd',
+    companyShortName: 'OTH',
+    companyAddress: '200 Harbour Drive, Perth WA 6000',
+  },
+  'Supa Technologies Audit': {
+    dealName: 'Supa Technologies Audit',
+    pipeline: 'Audit',
+    contactPerson: 'Alex Rivera',
+    contactEmail: 'alex.rivera@supatech.io',
+    contactTitle: 'COO',
+    companyName: 'Supa Technologies Pty Ltd',
+    companyShortName: 'SUPA',
+    companyAddress: 'Level 5, 100 Innovation Way, Sydney NSW 2000',
+  },
 }
 
 function buildInitialChatHistories(): Record<string, ChatMessage[]> {
@@ -26,12 +83,21 @@ function buildInitialChatHistories(): Record<string, ChatMessage[]> {
   return next
 }
 
+function buildInitialDealInfoByChat(): Record<string, DealInfo> {
+  const next: Record<string, DealInfo> = {}
+  INITIAL_OPEN_CHATS.forEach((name) => {
+    const mock = MOCK_DEAL_INFO_BY_CHAT[name]
+    if (mock) next[name] = mock
+  })
+  return next
+}
+
 export default function Page() {
   const [currentView, setCurrentView] = useState<'new' | 'chat'>('new')
   const [currentChat, setCurrentChat] = useState<string | null>(null)
   const [openChats, setOpenChats] = useState<string[]>([...INITIAL_OPEN_CHATS])
   const [closedChats, setClosedChats] = useState<string[]>([])
-  const [dealInfoByChat, setDealInfoByChat] = useState<Record<string, DealInfo>>({})
+  const [dealInfoByChat, setDealInfoByChat] = useState<Record<string, DealInfo>>(buildInitialDealInfoByChat)
   const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>(
     buildInitialChatHistories
   )

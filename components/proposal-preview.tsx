@@ -28,6 +28,10 @@ interface ProposalPreviewProps {
     pipeline: string
     contactPerson: string
     contactEmail: string
+    contactTitle?: string
+    companyName?: string
+    companyShortName?: string
+    companyAddress?: string
   } | null
 }
 
@@ -53,10 +57,10 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
   const [clientForm, setClientForm] = useState({
     contactName: dealInfo?.contactPerson ?? 'abc',
     contactEmail: dealInfo?.contactEmail ?? 'abc@abc.com',
-    contactTitle: '',
-    companyName: '',
-    companyShortName: '',
-    companyAddress: '',
+    contactTitle: dealInfo?.contactTitle ?? '',
+    companyName: dealInfo?.companyName ?? '',
+    companyShortName: dealInfo?.companyShortName ?? '',
+    companyAddress: dealInfo?.companyAddress ?? '',
   })
 
   const defaultVasPart1 = [
@@ -359,10 +363,10 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     setClientForm({
       contactName: dealInfo?.contactPerson ?? 'abc',
       contactEmail: dealInfo?.contactEmail ?? 'abc@abc.com',
-      contactTitle: '',
-      companyName: '',
-      companyShortName: clientForm.companyShortName ?? '',
-      companyAddress: clientForm.companyAddress ?? '',
+      contactTitle: dealInfo?.contactTitle ?? clientForm.contactTitle ?? '',
+      companyName: dealInfo?.companyName ?? clientForm.companyName ?? '',
+      companyShortName: clientForm.companyShortName ?? dealInfo?.companyShortName ?? '',
+      companyAddress: clientForm.companyAddress ?? dealInfo?.companyAddress ?? '',
     })
     setIsClientEditing(true)
   }
@@ -375,25 +379,26 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     setClientForm({
       contactName: dealInfo?.contactPerson ?? 'abc',
       contactEmail: dealInfo?.contactEmail ?? 'abc@abc.com',
-      contactTitle: '',
-      companyName: '',
-      companyShortName: '',
-      companyAddress: '',
+      contactTitle: dealInfo?.contactTitle ?? '',
+      companyName: dealInfo?.companyName ?? '',
+      companyShortName: dealInfo?.companyShortName ?? '',
+      companyAddress: dealInfo?.companyAddress ?? '',
     })
     setIsClientEditing(false)
   }
 
   useEffect(() => {
-    if (!isClientEditing) {
-      const name = dealInfo?.contactPerson ?? 'abc'
-      const email = dealInfo?.contactEmail ?? 'abc@abc.com'
-      setClientForm((prev) =>
-        prev.contactName === name && prev.contactEmail === email
-          ? prev
-          : { ...prev, contactName: name, contactEmail: email, contactTitle: '', companyName: '', companyShortName: prev.companyShortName, companyAddress: '' }
-      )
+    if (!isClientEditing && dealInfo) {
+      setClientForm({
+        contactName: dealInfo.contactPerson ?? 'abc',
+        contactEmail: dealInfo.contactEmail ?? 'abc@abc.com',
+        contactTitle: dealInfo.contactTitle ?? '',
+        companyName: dealInfo.companyName ?? '',
+        companyShortName: dealInfo.companyShortName ?? '',
+        companyAddress: dealInfo.companyAddress ?? '',
+      })
     }
-  }, [dealInfo?.contactPerson, dealInfo?.contactEmail, isClientEditing])
+  }, [dealInfo, isClientEditing])
 
   const startExecutiveEdit = () => {
     setOpenSections((prev) => ({ ...prev, executive: true }))
