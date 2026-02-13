@@ -29,6 +29,23 @@ import {
 } from '@/components/ui/tooltip'
 import type { TemplateId } from '@/lib/users'
 
+/** Standard template: one table with title; table has 4 columns. */
+export type SolutionPackageServiceRow = {
+  id: string
+  scopeOfWork: string
+  oneOff: string
+  recurring: string
+}
+export type SolutionPackage = {
+  id: string
+  name: string
+  services: SolutionPackageServiceRow[]
+}
+
+function genId(): string {
+  return `sp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+}
+
 interface ProposalPreviewProps {
   template?: TemplateId
   dealInfo: {
@@ -56,6 +73,7 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
     timeline: false,
     appendix: false,
   })
+  const [solutionPackages, setSolutionPackages] = useState<SolutionPackage[]>([])
   const [isClientEditing, setIsClientEditing] = useState(false)
   const [executiveEditMode, setExecutiveEditMode] = useState(false)
   const [executiveAiImproveOpen, setExecutiveAiImproveOpen] = useState(false)
@@ -1633,7 +1651,9 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
           </>
           )}
 
-          {template === 'standard' && (
+          {template === 'standard' && (() => {
+            const hasSolutionPackageData = solutionPackages.length > 0
+            return (
           <Collapsible open={openSections.solutionPackage} onOpenChange={() => toggleSection('solutionPackage')}>
             <div className="group rounded-lg border border-gray-200 bg-white">
               <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
@@ -1646,16 +1666,204 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                   />
                   <span className="text-sm font-medium text-black">Solution Package + Services &amp; Prices</span>
                 </div>
-                <span className="text-xs text-gray-500">Not Ready</span>
+                {!hasSolutionPackageData && <span className="text-xs text-gray-500">Not Ready</span>}
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="border-t border-gray-100 px-4 py-4">
-                  <p className="text-sm text-gray-600">Details to be implemented.</p>
+                <div className="border-t border-gray-100 px-4 py-4 space-y-4">
+                  {!hasSolutionPackageData ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-black hover:bg-gray-50 text-xs h-8"
+                      onClick={() =>
+                        setSolutionPackages((prev) => [
+                          ...prev,
+                          {
+                            id: genId(),
+                            name: '',
+                            services: [{ id: genId(), scopeOfWork: '', oneOff: '', recurring: '' }],
+                          },
+                        ])
+                      }
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add service
+                    </Button>
+                  ) : (
+                    <>
+                      {solutionPackages.map((pkg) => (
+                        <div key={pkg.id} className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                          <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-200 bg-white">
+                            <input
+                              type="text"
+                              value={pkg.name}
+                              onChange={(e) =>
+                                setSolutionPackages((prev) =>
+                                  prev.map((x) => (x.id === pkg.id ? { ...x, name: e.target.value } : x))
+                                )
+                              }
+                              placeholder="Table title"
+                              className="flex-1 min-w-0 border-0 bg-transparent text-sm font-semibold text-black focus:outline-none focus:ring-0 px-0 placeholder:text-gray-400"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setSolutionPackages((prev) => prev.filter((x) => x.id !== pkg.id))}
+                              className="shrink-0 text-gray-500 hover:text-black ml-2"
+                              aria-label="Delete table"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs border-collapse">
+                              <thead>
+                                <tr className="border-b border-gray-200 bg-gray-100">
+                                  <th className="px-3 py-2 text-left font-medium text-black">Scope of work</th>
+                                  <th className="px-3 py-2 text-left font-medium text-black w-28">One-off Fee (AUD)</th>
+                                  <th className="px-3 py-2 text-left font-medium text-black w-28">Recurring Fee (AUD)</th>
+                                  <th className="px-3 py-2 w-10 text-left font-medium text-black">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {pkg.services.map((row) => (
+                                  <tr key={row.id} className="border-b border-gray-100 last:border-0 bg-white">
+                                    <td className="px-3 py-2 align-top min-w-[200px] bg-white">
+                                      <Textarea
+                                        value={row.scopeOfWork}
+                                        onChange={(e) =>
+                                          setSolutionPackages((prev) =>
+                                            prev.map((x) =>
+                                              x.id === pkg.id
+                                                ? {
+                                                    ...x,
+                                                    services: x.services.map((s) =>
+                                                      s.id === row.id ? { ...s, scopeOfWork: e.target.value } : s
+                                                    ),
+                                                  }
+                                                : x
+                                            )
+                                          )
+                                        }
+                                        rows={3}
+                                        className="min-h-0 resize-y border border-gray-200 text-xs py-1.5 px-2 bg-white w-full"
+                                        placeholder="Scope of work..."
+                                      />
+                                    </td>
+                                    <td className="px-3 py-2 align-top bg-white">
+                                      <Input
+                                        value={row.oneOff}
+                                        onChange={(e) =>
+                                          setSolutionPackages((prev) =>
+                                            prev.map((x) =>
+                                              x.id === pkg.id
+                                                ? {
+                                                    ...x,
+                                                    services: x.services.map((s) =>
+                                                      s.id === row.id ? { ...s, oneOff: e.target.value } : s
+                                                    ),
+                                                  }
+                                                : x
+                                            )
+                                          )
+                                        }
+                                        className="border border-gray-200 text-xs h-8 px-2 bg-white"
+                                        placeholder="-"
+                                      />
+                                    </td>
+                                    <td className="px-3 py-2 align-top bg-white">
+                                      <Input
+                                        value={row.recurring}
+                                        onChange={(e) =>
+                                          setSolutionPackages((prev) =>
+                                            prev.map((x) =>
+                                              x.id === pkg.id
+                                                ? {
+                                                    ...x,
+                                                    services: x.services.map((s) =>
+                                                      s.id === row.id ? { ...s, recurring: e.target.value } : s
+                                                    ),
+                                                  }
+                                                : x
+                                            )
+                                          )
+                                        }
+                                        className="border border-gray-200 text-xs h-8 px-2 bg-white"
+                                        placeholder="-"
+                                      />
+                                    </td>
+                                    <td className="px-3 py-2 align-top bg-white">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setSolutionPackages((prev) =>
+                                            prev.map((x) =>
+                                              x.id === pkg.id
+                                                ? { ...x, services: x.services.filter((s) => s.id !== row.id) }
+                                                : x
+                                            )
+                                          )
+                                        }
+                                        className="text-gray-500 hover:text-black"
+                                        aria-label="Delete row"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <div className="px-3 py-2 border-t border-gray-100 bg-white">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="border-gray-300 text-black hover:bg-gray-50 text-xs h-7"
+                              onClick={() =>
+                                setSolutionPackages((prev) =>
+                                  prev.map((x) =>
+                                    x.id === pkg.id
+                                      ? { ...x, services: [...x.services, { id: genId(), scopeOfWork: '', oneOff: '', recurring: '' }] }
+                                      : x
+                                  )
+                                )
+                              }
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add row
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-300 text-black hover:bg-gray-50 text-xs h-8"
+                        onClick={() =>
+                          setSolutionPackages((prev) => [
+                            ...prev,
+                            {
+                              id: genId(),
+                              name: '',
+                              services: [{ id: genId(), scopeOfWork: '', oneOff: '', recurring: '' }],
+                            },
+                          ])
+                        }
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add service
+                      </Button>
+                    </>
+                  )}
                 </div>
               </CollapsibleContent>
             </div>
           </Collapsible>
-          )}
+            )
+          })()}
 
           {/* Appendix (Optional) */}
           <Collapsible open={openSections.appendix} onOpenChange={() => toggleSection('appendix')}>
