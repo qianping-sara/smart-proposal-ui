@@ -14,6 +14,7 @@ import { ProposalPreview } from '@/components/proposal-preview'
 
 import type { ChatMessage } from '@/lib/chat-types'
 import type { TemplateId } from '@/lib/users'
+import type { SolutionPackage } from '@/lib/solution-package'
 
 interface ChatInterfaceProps {
   template?: TemplateId
@@ -28,9 +29,11 @@ interface ChatInterfaceProps {
   onSendMessage?: (text: string) => void
   customServices?: Array<{ description: string; oneOff: string; recurring: string }>
   onCustomServicesChange?: (next: Array<{ description: string; oneOff: string; recurring: string }> | ((prev: Array<{ description: string; oneOff: string; recurring: string }>) => Array<{ description: string; oneOff: string; recurring: string }>)) => void
+  solutionPackages?: SolutionPackage[]
+  onSolutionPackagesChange?: (next: SolutionPackage[] | ((prev: SolutionPackage[]) => SolutionPackage[])) => void
 }
 
-export function ChatInterface({ template = 'audit', dealInfo, dealName, messages, onSendMessage, customServices, onCustomServicesChange }: ChatInterfaceProps) {
+export function ChatInterface({ template = 'audit', dealInfo, dealName, messages, onSendMessage, customServices, onCustomServicesChange, solutionPackages, onSolutionPackagesChange }: ChatInterfaceProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2">
@@ -56,7 +59,7 @@ export function ChatInterface({ template = 'audit', dealInfo, dealName, messages
         </ResizablePanel>
         <ResizableHandle className="w-px bg-gray-300 hover:bg-gray-400" />
         <ResizablePanel defaultSize={50} minSize={30}>
-          <ProposalPreview template={template} dealInfo={dealInfo} customServices={customServices} onCustomServicesChange={onCustomServicesChange} />
+          <ProposalPreview template={template} dealInfo={dealInfo} customServices={customServices} onCustomServicesChange={onCustomServicesChange} solutionPackages={solutionPackages} onSolutionPackagesChange={onSolutionPackagesChange} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

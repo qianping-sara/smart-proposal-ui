@@ -28,20 +28,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import type { TemplateId } from '@/lib/users'
-
-/** Standard template: one table with title; table has 4 columns. */
-export type SolutionPackageServiceRow = {
-  id: string
-  scopeOfWork: string
-  monthlyQuarterly: string
-  annual: string
-  onceOff: string
-}
-export type SolutionPackage = {
-  id: string
-  name: string
-  services: SolutionPackageServiceRow[]
-}
+import type { SolutionPackage, SolutionPackageServiceRow } from '@/lib/solution-package'
 
 function genId(): string {
   return `sp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -49,6 +36,8 @@ function genId(): string {
 
 interface ProposalPreviewProps {
   template?: TemplateId
+  solutionPackages?: SolutionPackage[]
+  onSolutionPackagesChange?: (next: SolutionPackage[] | ((prev: SolutionPackage[]) => SolutionPackage[])) => void
   dealInfo: {
     dealName: string
     pipeline: string
@@ -63,7 +52,7 @@ interface ProposalPreviewProps {
   onCustomServicesChange?: (next: Array<{ description: string; oneOff: string; recurring: string }> | ((prev: Array<{ description: string; oneOff: string; recurring: string }>) => Array<{ description: string; oneOff: string; recurring: string }>)) => void
 }
 
-export function ProposalPreview({ template = 'audit', dealInfo, customServices, onCustomServicesChange }: ProposalPreviewProps) {
+export function ProposalPreview({ template = 'audit', solutionPackages: solutionPackagesProp, onSolutionPackagesChange, dealInfo, customServices, onCustomServicesChange }: ProposalPreviewProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     client: true,
     executive: true,
@@ -74,7 +63,9 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
     timeline: false,
     appendix: false,
   })
-  const [solutionPackages, setSolutionPackages] = useState<SolutionPackage[]>([])
+  const [internalSolutionPackages, setInternalSolutionPackages] = useState<SolutionPackage[]>([])
+  const solutionPackages = template === 'standard' && solutionPackagesProp !== undefined ? solutionPackagesProp : internalSolutionPackages
+  const setSolutionPackages = template === 'standard' && onSolutionPackagesChange != null ? onSolutionPackagesChange : setInternalSolutionPackages
   const [isClientEditing, setIsClientEditing] = useState(false)
   const [executiveEditMode, setExecutiveEditMode] = useState(false)
   const [executiveAiImproveOpen, setExecutiveAiImproveOpen] = useState(false)
@@ -1689,7 +1680,7 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                       }
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add Solution package
+                      Add Service
                     </Button>
                   ) : (
                     <>
@@ -1855,7 +1846,7 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                               }
                             >
                               <Plus className="h-3 w-3 mr-1" />
-                              Add Service
+                              Add Row
                             </Button>
                           </div>
                         </div>
@@ -1877,7 +1868,7 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                         }
                       >
                         <Plus className="h-3 w-3 mr-1" />
-                        Add Solution package
+                        Add Service
                       </Button>
                     </>
                   )}

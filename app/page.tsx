@@ -7,6 +7,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
 import { getDefaultChatMessages, type ChatMessage } from '@/lib/chat-types'
 import { USERS, getUser, type UserId } from '@/lib/users'
+import { createTaxCompliancePackage, type SolutionPackage } from '@/lib/solution-package'
 
 export const AUDIT_SERVICES_LIST = [
   'Year-end audit of financial report',
@@ -79,6 +80,15 @@ function lastAssistantAskedAddAuditServices(messages: ChatMessage[]): boolean {
     }
   }
   return false
+}
+
+function isTaxComplianceQuestion(text: string): boolean {
+  const t = text.trim().toLowerCase()
+  return (
+    /any\s+tax\s+(&|and)?\s*compliance\s+related\s+service/i.test(t) ||
+    /any\s+tax\s+service/i.test(t) ||
+    /any\s+compliance\s+service/i.test(t)
+  )
 }
 
 export type DealInfo = {
@@ -175,9 +185,11 @@ export default function Page() {
     buildInitialDealInfoByChat(currentUser.chatList)
   )
   const [customServicesByChat, setCustomServicesByChat] = useState<Record<string, CustomServiceRow[]>>({})
+  const [solutionPackagesByChat, setSolutionPackagesByChat] = useState<Record<string, SolutionPackage[]>>({})
   const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>(() =>
     buildInitialChatHistories(currentUser.chatList)
   )
+  const pendingStandardServiceRef = useRef<string | null>(null)
 
   const handleSwitchUser = useCallback((userId: UserId) => {
     setCurrentUserId(userId)
@@ -189,6 +201,7 @@ export default function Page() {
     setDealInfoByChat(buildInitialDealInfoByChat(user.chatList))
     setChatHistories(buildInitialChatHistories(user.chatList))
     setCustomServicesByChat({})
+    setSolutionPackagesByChat({})
   }, [])
 
   const dealInfo: DealInfo | null = currentChat ? dealInfoByChat[currentChat] ?? null : null
@@ -196,6 +209,17 @@ export default function Page() {
     ? (chatHistories[currentChat] ?? getDefaultChatMessages())
     : []
   const currentCustomServices = currentChat ? (customServicesByChat[currentChat] ?? []) : []
+  const currentSolutionPackages = currentChat ? (solutionPackagesByChat[currentChat] ?? []) : []
+  const setCurrentSolutionPackages = useCallback(
+    (updater: SolutionPackage[] | ((prev: SolutionPackage[]) => SolutionPackage[])) => {
+      if (!currentChat) return
+      setSolutionPackagesByChat((prev) => ({
+        ...prev,
+        [currentChat]: typeof updater === 'function' ? updater(prev[currentChat] ?? []) : updater,
+      }))
+    },
+    [currentChat]
+  )
   const setCurrentCustomServices = useCallback(
     (updater: CustomServiceRow[] | ((prev: CustomServiceRow[]) => CustomServiceRow[])) => {
       if (!currentChat) return
@@ -236,6 +260,62 @@ export default function Page() {
     const userMsg: ChatMessage = { type: 'user', content: text.trim() }
     const companyName = extractCompanyNameFromInput(text)
     const messagesNow = chatHistories[chatName] ?? []
+    const template = currentUser.template
+
+    if (template === 'standard') {
+      if (pendingStandardServiceRef.current && isConfirmAddAuditServices(text)) {
+        setChatHistories((prev) => ({
+          ...prev,
+          [chatName]: [...(prev[chatName] ?? []), userMsg, { type: 'assistant-loading', step: 'Planning' }],
+        }))
+        setTimeout(() => {
+          setSolutionPackagesByChat((prev) => ({
+            ...prev,
+            [chatName]: [...(prev[chatName] ?? []), createTaxCompliancePackage()],
+          }))
+          pendingStandardServiceRef.current = null
+          setChatHistories((prev) => {
+            const list = (prev[chatName] ?? []).filter((m) => m.type !== 'assistant-loading')
+            return {
+              ...prev,
+              [chatName]: [...list, { type: 'assistant', content: 'Done. Added to Solution Package.' }],
+            }
+          })
+        }, 2400)
+        return
+      }
+      if (isTaxComplianceQuestion(text)) {
+        pendingStandardServiceRef.current = 'Tax & Compliance Services'
+        setChatHistories((prev) => ({
+          ...prev,
+          [chatName]: [...(prev[chatName] ?? []), userMsg, { type: 'assistant-loading', step: 'Planning' }],
+        }))
+        setTimeout(() => {
+          setChatHistories((prev) => {
+            const list = (prev[chatName] ?? []).filter((m) => m.type !== 'assistant-loading')
+            return { ...prev, [chatName]: [...list, { type: 'assistant-loading', step: 'Searching' }] }
+          })
+        }, 1200)
+        setTimeout(() => {
+          setChatHistories((prev) => {
+            const list = (prev[chatName] ?? []).filter((m) => m.type !== 'assistant-loading')
+            return {
+              ...prev,
+              [chatName]: [
+                ...list,
+                {
+                  type: 'assistant',
+                  content: 'I found the following. Would you like to add this to your Solution Package?',
+                  numberedList: ['Tax & Compliance Services'],
+                },
+              ],
+            }
+          })
+        }, 2400)
+        return
+      }
+    }
+
     const isServiceSelection =
       lastAssistantMessageHasNumberedList(messagesNow) &&
       parseServiceSelection(text, AUDIT_SERVICES_LIST.length).length > 0
@@ -381,7 +461,7 @@ export default function Page() {
         }
       })
     }, 2400)
-  }, [chatHistories])
+  }, [chatHistories, currentUser.template])
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
@@ -415,6 +495,8 @@ export default function Page() {
               onSendMessage={currentChat ? (text) => handleSendMessage(currentChat, text) : undefined}
               customServices={currentCustomServices}
               onCustomServicesChange={setCurrentCustomServices}
+              solutionPackages={currentUser.template === 'standard' ? currentSolutionPackages : undefined}
+              onSolutionPackagesChange={currentUser.template === 'standard' ? setCurrentSolutionPackages : undefined}
             />
           </>
         )}
