@@ -97,11 +97,11 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
-        <div className="space-y-1">
+        <div className="space-y-2">
           {/* Client Information */}
           <Collapsible open={openSections.client} onOpenChange={() => toggleSection('client')}>
-            <div className="group rounded border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50">
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronDown
                     className={cn(
@@ -227,8 +227,8 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
 
           {/* Executive Summary */}
           <Collapsible open={openSections.executive} onOpenChange={() => toggleSection('executive')}>
-            <div className="group rounded border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50">
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronDown
                     className={cn(
@@ -273,8 +273,8 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
 
           {/* Scope of Services */}
           <Collapsible open={openSections.scope} onOpenChange={() => toggleSection('scope')}>
-            <div className="group rounded border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50">
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronRight className="h-4 w-4" />
                   <span className="text-sm font-medium text-black">Scope of Services</span>
@@ -286,8 +286,8 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
 
           {/* Solution Package + Services & Prices */}
           <Collapsible open={openSections.solution} onOpenChange={() => toggleSection('solution')}>
-            <div className="group rounded border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50">
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronRight className="h-4 w-4" />
                   <span className="text-sm font-medium text-black">Solution Package + Services & Prices</span>
@@ -299,8 +299,8 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
 
           {/* Appendix (Optional) */}
           <Collapsible open={openSections.appendix} onOpenChange={() => toggleSection('appendix')}>
-            <div className="group rounded border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50">
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronDown
                     className={cn(
@@ -377,8 +377,8 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
 
           {/* First Total Invoice Value (Optional) */}
           <Collapsible open={openSections.invoice} onOpenChange={() => toggleSection('invoice')}>
-            <div className="group rounded border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50">
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronRight className="h-4 w-4" />
                   <span className="text-sm font-medium text-black">First Total Invoice Value (Optional)</span>
