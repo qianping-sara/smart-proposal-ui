@@ -1,9 +1,13 @@
-export type ChatMessage = {
-  type: 'assistant'
-  content: string
-  list?: string[]
-  highlight?: [string, string]
-}
+export type ChatMessage =
+  | { type: 'user'; content: string }
+  | { type: 'assistant-loading'; step: string }
+  | {
+      type: 'assistant'
+      content: string
+      list?: string[]
+      highlight?: [string, string]
+      numberedList?: string[]
+    }
 
 export function getDefaultChatMessages(): ChatMessage[] {
   return [

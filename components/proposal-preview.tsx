@@ -33,9 +33,11 @@ interface ProposalPreviewProps {
     companyShortName?: string
     companyAddress?: string
   } | null
+  customServices?: Array<{ description: string; oneOff: string; recurring: string }>
+  onCustomServicesChange?: (next: Array<{ description: string; oneOff: string; recurring: string }> | ((prev: Array<{ description: string; oneOff: string; recurring: string }>) => Array<{ description: string; oneOff: string; recurring: string }>)) => void
 }
 
-export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
+export function ProposalPreview({ dealInfo, customServices, onCustomServicesChange }: ProposalPreviewProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     client: true,
     executive: true,
@@ -92,7 +94,9 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     },
   ]
   const [vasPart1, setVasPart1] = useState<Array<{ description: string; oneOff: string; recurring: string }>>(defaultVasPart1)
-  const [vasPart2, setVasPart2] = useState<Array<{ description: string; oneOff: string; recurring: string }>>([])
+  const [internalVasPart2, setInternalVasPart2] = useState<Array<{ description: string; oneOff: string; recurring: string }>>([])
+  const vasPart2 = onCustomServicesChange != null && customServices != null ? customServices : internalVasPart2
+  const setVasPart2 = onCustomServicesChange != null && customServices != null ? onCustomServicesChange : setInternalVasPart2
   const [vasPart3, setVasPart3] = useState<
     Array<{ natureOfService: string; statutoryAudit: boolean; valueAdd: boolean }>
   >(defaultVasPart3)
