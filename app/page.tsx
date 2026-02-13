@@ -5,11 +5,8 @@ import { NewProposalForm } from '@/components/new-proposal-form'
 import { ChatInterface } from '@/components/chat-interface'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
-import {
-  getDefaultChatMessages,
-  INITIAL_OPEN_CHATS,
-  type ChatMessage,
-} from '@/lib/chat-types'
+import { getDefaultChatMessages, type ChatMessage } from '@/lib/chat-types'
+import { USERS, getUser, type UserId } from '@/lib/users'
 
 export const AUDIT_SERVICES_LIST = [
   'Year-end audit of financial report',
@@ -148,33 +145,51 @@ const MOCK_DEAL_INFO_BY_CHAT: Record<string, DealInfo> = {
   },
 }
 
-function buildInitialChatHistories(): Record<string, ChatMessage[]> {
+function buildInitialChatHistories(chatList: readonly string[]): Record<string, ChatMessage[]> {
   const next: Record<string, ChatMessage[]> = {}
-  INITIAL_OPEN_CHATS.forEach((name) => {
+  chatList.forEach((name) => {
     next[name] = getDefaultChatMessages()
   })
   return next
 }
 
-function buildInitialDealInfoByChat(): Record<string, DealInfo> {
+function buildInitialDealInfoByChat(chatList: readonly string[]): Record<string, DealInfo> {
   const next: Record<string, DealInfo> = {}
-  INITIAL_OPEN_CHATS.forEach((name) => {
-    const mock = MOCK_DEAL_INFO_BY_CHAT[name]
+  chatList.forEach((name) => {
+    const mock = MOCK_DEAL_INFO_BY_CHAT[name as keyof typeof MOCK_DEAL_INFO_BY_CHAT]
     if (mock) next[name] = mock
   })
   return next
 }
 
+const DEFAULT_USER_ID: UserId = 'kenyu'
+
 export default function Page() {
+  const [currentUserId, setCurrentUserId] = useState<UserId>(DEFAULT_USER_ID)
+  const currentUser = getUser(currentUserId)
   const [currentView, setCurrentView] = useState<'new' | 'chat'>('new')
   const [currentChat, setCurrentChat] = useState<string | null>(null)
-  const [openChats, setOpenChats] = useState<string[]>([...INITIAL_OPEN_CHATS])
+  const [openChats, setOpenChats] = useState<string[]>(() => [...currentUser.chatList])
   const [closedChats, setClosedChats] = useState<string[]>([])
-  const [dealInfoByChat, setDealInfoByChat] = useState<Record<string, DealInfo>>(buildInitialDealInfoByChat)
-  const [customServicesByChat, setCustomServicesByChat] = useState<Record<string, CustomServiceRow[]>>({})
-  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>(
-    buildInitialChatHistories
+  const [dealInfoByChat, setDealInfoByChat] = useState<Record<string, DealInfo>>(() =>
+    buildInitialDealInfoByChat(currentUser.chatList)
   )
+  const [customServicesByChat, setCustomServicesByChat] = useState<Record<string, CustomServiceRow[]>>({})
+  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>(() =>
+    buildInitialChatHistories(currentUser.chatList)
+  )
+
+  const handleSwitchUser = useCallback((userId: UserId) => {
+    setCurrentUserId(userId)
+    const user = getUser(userId)
+    setOpenChats([...user.chatList])
+    setClosedChats([])
+    setCurrentChat(null)
+    setCurrentView('new')
+    setDealInfoByChat(buildInitialDealInfoByChat(user.chatList))
+    setChatHistories(buildInitialChatHistories(user.chatList))
+    setCustomServicesByChat({})
+  }, [])
 
   const dealInfo: DealInfo | null = currentChat ? dealInfoByChat[currentChat] ?? null : null
   const currentChatMessages = currentChat
@@ -370,7 +385,7 @@ export default function Page() {
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
-      <AppHeader />
+      <AppHeader currentUser={currentUser} onSwitchUser={handleSwitchUser} />
       <div className="flex flex-1 overflow-hidden">
         {currentView === 'new' ? (
           <>
@@ -381,7 +396,7 @@ export default function Page() {
               onSelectChat={handleSelectChat}
               currentChat={currentChat}
             />
-            <NewProposalForm onStart={handleStartProposal} />
+            <NewProposalForm currentUser={currentUser} onStart={handleStartProposal} />
           </>
         ) : (
           <>

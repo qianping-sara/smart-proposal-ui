@@ -8,8 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { USERS, type AppUser, type UserId } from '@/lib/users'
 
-export function AppHeader() {
+interface AppHeaderProps {
+  currentUser: AppUser
+  onSwitchUser: (userId: UserId) => void
+}
+
+export function AppHeader({ currentUser, onSwitchUser }: AppHeaderProps) {
   return (
     <header className="flex w-full shrink-0 border-b border-gray-200 bg-white">
       <div className="flex h-14 w-full items-center justify-between px-4">
@@ -36,16 +42,18 @@ export function AppHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-400 text-xs font-medium text-white">
-                  KY
+                  {currentUser.initials}
                 </div>
-                <span className="text-xs text-black">KenYu</span>
+                <span className="text-sm font-medium text-black">{currentUser.name}</span>
                 <ChevronDown className="h-4 w-4 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              {USERS.filter((u) => u.id !== currentUser.id).map((u) => (
+                <DropdownMenuItem key={u.id} onSelect={() => onSwitchUser(u.id)}>
+                  <span className="font-medium">{u.name}</span>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

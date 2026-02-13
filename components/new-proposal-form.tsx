@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,8 +13,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SquareIcon } from 'lucide-react'
+import type { AppUser } from '@/lib/users'
 
 interface NewProposalFormProps {
+  currentUser: AppUser
   onStart: (data: {
     dealName: string
     pipeline: string
@@ -23,12 +25,20 @@ interface NewProposalFormProps {
   }) => void
 }
 
-export function NewProposalForm({ onStart }: NewProposalFormProps) {
+const TEMPLATE_LABELS: Record<AppUser['template'], string> = {
+  audit: 'Incorp Audit Template',
+  standard: 'Incorp Standard Template',
+}
+
+export function NewProposalForm({ currentUser, onStart }: NewProposalFormProps) {
   const [dealName, setDealName] = useState('')
   const [pipeline, setPipeline] = useState('digital-marketing')
   const [contactPerson, setContactPerson] = useState('')
   const [contactEmail, setContactEmail] = useState('')
-  const [template, setTemplate] = useState('audit')
+  const [template, setTemplate] = useState<AppUser['template']>(currentUser.template)
+  useEffect(() => {
+    setTemplate(currentUser.template)
+  }, [currentUser.id, currentUser.template])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,14 +67,14 @@ export function NewProposalForm({ onStart }: NewProposalFormProps) {
             <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-100">
               <SquareIcon className="h-4 w-4 text-gray-600" />
             </div>
-            <Select value={template} onValueChange={setTemplate}>
+            <Select value={template} onValueChange={(v) => setTemplate(v as AppUser['template'])}>
               <SelectTrigger className="w-48 border-0 shadow-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="audit">Incorp Audit Template</SelectItem>
-                <SelectItem value="standard">Incoro Standard Template</SelectItem>
-                <SelectItem value="oxygen">Oxygen Template</SelectItem>
+                <SelectItem value={currentUser.template}>
+                  {TEMPLATE_LABELS[currentUser.template]}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
