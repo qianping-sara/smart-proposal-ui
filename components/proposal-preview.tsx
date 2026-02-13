@@ -33,8 +33,9 @@ import type { TemplateId } from '@/lib/users'
 export type SolutionPackageServiceRow = {
   id: string
   scopeOfWork: string
-  oneOff: string
-  recurring: string
+  monthlyQuarterly: string
+  annual: string
+  onceOff: string
 }
 export type SolutionPackage = {
   id: string
@@ -1682,19 +1683,19 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                           {
                             id: genId(),
                             name: '',
-                            services: [{ id: genId(), scopeOfWork: '', oneOff: '', recurring: '' }],
+                            services: [{ id: genId(), scopeOfWork: '', monthlyQuarterly: '', annual: '', onceOff: '' }],
                           },
                         ])
                       }
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add service
+                      Add Solution package
                     </Button>
                   ) : (
                     <>
                       {solutionPackages.map((pkg) => (
                         <div key={pkg.id} className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-                          <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-200 bg-white">
+                          <div className="flex items-center justify-between gap-2 px-2 py-1.5 border-b border-gray-200 bg-white">
                             <input
                               type="text"
                               value={pkg.name}
@@ -1719,16 +1720,17 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                             <table className="w-full text-xs border-collapse">
                               <thead>
                                 <tr className="border-b border-gray-200 bg-gray-100">
-                                  <th className="px-3 py-2 text-left font-medium text-black">Scope of work</th>
-                                  <th className="px-3 py-2 text-left font-medium text-black w-28">One-off Fee (AUD)</th>
-                                  <th className="px-3 py-2 text-left font-medium text-black w-28">Recurring Fee (AUD)</th>
-                                  <th className="px-3 py-2 w-10 text-left font-medium text-black">Action</th>
+                                  <th className="px-2 py-1.5 text-left font-medium text-black">Scope of work</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-20">Monthly/Quarterly</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-20">Annual</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-20">Once-off</th>
+                                  <th className="px-1 py-1.5 w-6 text-left font-medium text-black" aria-label="Action" />
                                 </tr>
                               </thead>
                               <tbody>
                                 {pkg.services.map((row) => (
                                   <tr key={row.id} className="border-b border-gray-100 last:border-0 bg-white">
-                                    <td className="px-3 py-2 align-top min-w-[200px] bg-white">
+                                    <td className="px-2 py-1.5 align-top min-w-[160px] bg-white">
                                       <Textarea
                                         value={row.scopeOfWork}
                                         onChange={(e) =>
@@ -1746,13 +1748,13 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                                           )
                                         }
                                         rows={3}
-                                        className="min-h-0 resize-y border border-gray-200 text-xs py-1.5 px-2 bg-white w-full"
+                                        className="min-h-0 resize-y border border-gray-200 text-xs py-1 px-1.5 bg-white w-full"
                                         placeholder="Scope of work..."
                                       />
                                     </td>
-                                    <td className="px-3 py-2 align-top bg-white">
+                                    <td className="px-1.5 py-1.5 align-top bg-white">
                                       <Input
-                                        value={row.oneOff}
+                                        value={row.monthlyQuarterly}
                                         onChange={(e) =>
                                           setSolutionPackages((prev) =>
                                             prev.map((x) =>
@@ -1760,20 +1762,20 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                                                 ? {
                                                     ...x,
                                                     services: x.services.map((s) =>
-                                                      s.id === row.id ? { ...s, oneOff: e.target.value } : s
+                                                      s.id === row.id ? { ...s, monthlyQuarterly: e.target.value } : s
                                                     ),
                                                   }
                                                 : x
                                             )
                                           )
                                         }
-                                        className="border border-gray-200 text-xs h-8 px-2 bg-white"
+                                        className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
                                         placeholder="-"
                                       />
                                     </td>
-                                    <td className="px-3 py-2 align-top bg-white">
+                                    <td className="px-1.5 py-1.5 align-top bg-white">
                                       <Input
-                                        value={row.recurring}
+                                        value={row.annual}
                                         onChange={(e) =>
                                           setSolutionPackages((prev) =>
                                             prev.map((x) =>
@@ -1781,18 +1783,39 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                                                 ? {
                                                     ...x,
                                                     services: x.services.map((s) =>
-                                                      s.id === row.id ? { ...s, recurring: e.target.value } : s
+                                                      s.id === row.id ? { ...s, annual: e.target.value } : s
                                                     ),
                                                   }
                                                 : x
                                             )
                                           )
                                         }
-                                        className="border border-gray-200 text-xs h-8 px-2 bg-white"
+                                        className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
                                         placeholder="-"
                                       />
                                     </td>
-                                    <td className="px-3 py-2 align-top bg-white">
+                                    <td className="px-1.5 py-1.5 align-top bg-white">
+                                      <Input
+                                        value={row.onceOff}
+                                        onChange={(e) =>
+                                          setSolutionPackages((prev) =>
+                                            prev.map((x) =>
+                                              x.id === pkg.id
+                                                ? {
+                                                    ...x,
+                                                    services: x.services.map((s) =>
+                                                      s.id === row.id ? { ...s, onceOff: e.target.value } : s
+                                                    ),
+                                                  }
+                                                : x
+                                            )
+                                          )
+                                        }
+                                        className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                        placeholder="-"
+                                      />
+                                    </td>
+                                    <td className="px-1 py-1.5 align-top bg-white w-6">
                                       <button
                                         type="button"
                                         onClick={() =>
@@ -1815,7 +1838,7 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                               </tbody>
                             </table>
                           </div>
-                          <div className="px-3 py-2 border-t border-gray-100 bg-white">
+                          <div className="px-2 py-1.5 border-t border-gray-100 bg-white">
                             <Button
                               type="button"
                               variant="outline"
@@ -1825,14 +1848,14 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                                 setSolutionPackages((prev) =>
                                   prev.map((x) =>
                                     x.id === pkg.id
-                                      ? { ...x, services: [...x.services, { id: genId(), scopeOfWork: '', oneOff: '', recurring: '' }] }
+                                      ? { ...x, services: [...x.services, { id: genId(), scopeOfWork: '', monthlyQuarterly: '', annual: '', onceOff: '' }] }
                                       : x
                                   )
                                 )
                               }
                             >
                               <Plus className="h-3 w-3 mr-1" />
-                              Add row
+                              Add Service
                             </Button>
                           </div>
                         </div>
@@ -1848,13 +1871,13 @@ export function ProposalPreview({ template = 'audit', dealInfo, customServices, 
                             {
                               id: genId(),
                               name: '',
-                              services: [{ id: genId(), scopeOfWork: '', oneOff: '', recurring: '' }],
+                              services: [{ id: genId(), scopeOfWork: '', monthlyQuarterly: '', annual: '', onceOff: '' }],
                             },
                           ])
                         }
                       >
                         <Plus className="h-3 w-3 mr-1" />
-                        Add service
+                        Add Solution package
                       </Button>
                     </>
                   )}
