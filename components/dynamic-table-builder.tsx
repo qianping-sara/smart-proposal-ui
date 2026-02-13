@@ -7,14 +7,31 @@ import { cn } from '@/lib/utils'
 
 interface DynamicTableBuilderProps {
   onTableCreate?: (rows: number, cols: number) => void
+  /** When provided, table is controlled: display value and call onChange on changes */
+  value?: string[][]
+  onChange?: (data: string[][]) => void
+  /** When uncontrolled, optional initial rows (e.g. preset for Timeline) */
+  initialData?: string[][]
+  /** When true, first row is styled as header and has no remove button; Remove Table keeps first row when it exists */
+  firstRowIsHeader?: boolean
+  /** When provided, render this instead of the default "Add Row" button below the table */
+  customAddContent?: React.ReactNode
 }
 
-export function DynamicTableBuilder({ onTableCreate }: DynamicTableBuilderProps) {
+export function DynamicTableBuilder({ onTableCreate, value, onChange, initialData = [], firstRowIsHeader, customAddContent }: DynamicTableBuilderProps) {
   const [showSelector, setShowSelector] = useState(false)
   const [selectedRows, setSelectedRows] = useState(0)
   const [selectedCols, setSelectedCols] = useState(0)
-  const [tableData, setTableData] = useState<string[][]>([])
+  const [internalData, setInternalData] = useState<string[][]>(initialData)
   const [isHovering, setIsHovering] = useState(false)
+
+  const isControlled = value !== undefined
+  const tableData = isControlled ? value! : internalData
+  const setTableData = (updater: string[][] | ((prev: string[][]) => string[][])) => {
+    const next = typeof updater === 'function' ? updater(isControlled ? value! : internalData) : updater
+    if (isControlled) onChange?.(next)
+    else setInternalData(next)
+  }
 
   const maxRows = 10
   const maxCols = 4
@@ -38,12 +55,17 @@ export function DynamicTableBuilder({ onTableCreate }: DynamicTableBuilderProps)
   }
 
   const handleRemoveTable = () => {
-    setTableData([])
+    if (firstRowIsHeader && tableData.length > 0) {
+      setTableData([tableData[0]])
+    } else {
+      setTableData([])
+    }
     setSelectedRows(0)
     setSelectedCols(0)
   }
 
   const handleRemoveRow = (rowIndex: number) => {
+    if (firstRowIsHeader && rowIndex === 0) return
     setTableData((prev) => prev.filter((_, i) => i !== rowIndex))
   }
 
@@ -129,35 +151,47 @@ export function DynamicTableBuilder({ onTableCreate }: DynamicTableBuilderProps)
         </div>
       ) : (
         <div className="space-y-2">
-          {tableData.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-2">
-              <div className="grid flex-1 gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, 1fr)` }}>
-                {row.map((cell, colIndex) => (
-                  <input
-                    key={colIndex}
-                    type="text"
-                    value={cell}
-                    onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                    placeholder="Please enter..."
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
-                  />
-                ))}
+          {tableData.map((row, rowIndex) => {
+            const isHeaderRow = firstRowIsHeader && rowIndex === 0
+            return (
+              <div key={rowIndex} className={cn('flex gap-2', isHeaderRow && 'rounded bg-gray-100')}>
+                <div className="grid flex-1 min-w-0 gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, 1fr)` }}>
+                  {row.map((cell, colIndex) => (
+                    <input
+                      key={colIndex}
+                      type="text"
+                      value={cell}
+                      onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                      placeholder="Please enter..."
+                      className={cn(
+                        'w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none',
+                        isHeaderRow && 'bg-gray-100 font-semibold'
+                      )}
+                    />
+                  ))}
+                </div>
+                {isHeaderRow ? (
+                  <div className="w-9 flex-shrink-0" aria-hidden />
+                ) : (
+                  <button
+                    onClick={() => handleRemoveRow(rowIndex)}
+                    className="flex flex-shrink-0 items-center justify-center w-9"
+                  >
+                    <Minus className="h-5 w-5 rounded-full border border-gray-400 text-gray-600 hover:bg-gray-100" />
+                  </button>
+                )}
               </div>
-              <button
-                onClick={() => handleRemoveRow(rowIndex)}
-                className="flex items-center justify-center"
-              >
-                <Minus className="h-5 w-5 rounded-full border border-gray-400 text-gray-600 hover:bg-gray-100" />
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={handleAddRow}
-            className="flex items-center gap-1 text-sm text-gray-900 hover:text-black"
-          >
-            <Plus className="h-5 w-5 rounded-full border border-gray-400" />
-            Add Row
-          </button>
+            )
+          })}
+          {customAddContent != null ? customAddContent : (
+            <button
+              onClick={handleAddRow}
+              className="flex items-center gap-1 text-sm text-gray-900 hover:text-black"
+            >
+              <Plus className="h-5 w-5 rounded-full border border-gray-400" />
+              Add Row
+            </button>
+          )}
         </div>
       )}
     </div>
