@@ -45,6 +45,7 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     contactEmail: dealInfo?.contactEmail ?? 'abc@abc.com',
     contactTitle: '',
     companyName: '',
+    companyShortName: '',
     companyAddress: '',
   })
 
@@ -61,7 +62,8 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
       contactEmail: dealInfo?.contactEmail ?? 'abc@abc.com',
       contactTitle: '',
       companyName: '',
-      companyAddress: '',
+      companyShortName: clientForm.companyShortName ?? '',
+      companyAddress: clientForm.companyAddress ?? '',
     })
     setIsClientEditing(true)
   }
@@ -76,6 +78,7 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
       contactEmail: dealInfo?.contactEmail ?? 'abc@abc.com',
       contactTitle: '',
       companyName: '',
+      companyShortName: '',
       companyAddress: '',
     })
     setIsClientEditing(false)
@@ -88,7 +91,7 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
       setClientForm((prev) =>
         prev.contactName === name && prev.contactEmail === email
           ? prev
-          : { ...prev, contactName: name, contactEmail: email, contactTitle: '', companyName: '', companyAddress: '' }
+          : { ...prev, contactName: name, contactEmail: email, contactTitle: '', companyName: '', companyShortName: prev.companyShortName, companyAddress: '' }
       )
     }
   }, [dealInfo?.contactPerson, dealInfo?.contactEmail, isClientEditing])
@@ -223,6 +226,17 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
                             className="border-gray-300 text-sm placeholder:text-gray-400"
                           />
                         </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-normal text-black">
+                            Company abbreviation
+                          </label>
+                          <Input
+                            placeholder="Enter company abbreviation"
+                            value={clientForm.companyShortName}
+                            onChange={(e) => setClientForm((p) => ({ ...p, companyShortName: e.target.value }))}
+                            className="border-gray-300 text-sm placeholder:text-gray-400"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-normal text-black">
@@ -266,6 +280,10 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
                       <div className="flex gap-2">
                         <dt className="text-gray-600">Company Name:</dt>
                         <dd className="text-gray-900">{clientForm.companyName || '-'}</dd>
+                      </div>
+                      <div className="flex gap-2">
+                        <dt className="text-gray-600">Company abbreviation:</dt>
+                        <dd className="text-gray-900">{clientForm.companyShortName || '-'}</dd>
                       </div>
                       <div className="flex gap-2">
                         <dt className="text-gray-600">Company Address:</dt>
