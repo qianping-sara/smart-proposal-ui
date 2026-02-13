@@ -12,23 +12,20 @@ import {
 } from '@/components/ui/collapsible'
 
 interface AppSidebarProps {
+  openChats: string[]
+  closedChats: string[]
   onNewProposal: () => void
   onSelectChat: (chatName: string) => void
   currentChat: string | null
 }
 
-const mockChats = {
-  open: [
-    'Parable Church Ltd - Audit Proposal',
-    'Janus Electric Limited',
-    'Viridis Green Data Centres Limited',
-    'Omni Tanker Holdings Ltd',
-    'Supa Technologies Audit',
-  ],
-  closed: [],
-}
-
-export function AppSidebar({ onNewProposal, onSelectChat, currentChat }: AppSidebarProps) {
+export function AppSidebar({
+  openChats,
+  closedChats,
+  onNewProposal,
+  onSelectChat,
+  currentChat,
+}: AppSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isOpenExpanded, setIsOpenExpanded] = useState(true)
 
@@ -91,11 +88,11 @@ export function AppSidebar({ onNewProposal, onSelectChat, currentChat }: AppSide
               <ChevronDown className={cn("h-3 w-3 transition-transform", !isOpenExpanded && "-rotate-90")} />
               <span>Open</span>
             </div>
-            <span className="text-gray-400">{mockChats.open.length}</span>
+            <span className="text-gray-400">{openChats.length}</span>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="flex flex-col">
-              {mockChats.open.map((chat, index) => (
+              {openChats.map((chat, index) => (
                 <button
                   key={index}
                   onClick={() => onSelectChat(chat)}

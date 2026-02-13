@@ -1,38 +1,16 @@
 'use client'
 
-import { useState } from 'react'
 import { Plus, Copy, Mic } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import type { ChatMessage } from '@/lib/chat-types'
 
-export function ChatPanel() {
-  const [messages] = useState([
-    {
-      type: 'assistant',
-      content: 'Hi there! 👋 Thanks for your submission — I\'ve reviewed the details you shared and we\'re off to a good start.',
-    },
-    {
-      type: 'assistant',
-      content: 'Here are a few items that are still missing:',
-      list: [
-        'Contact title (Optional)',
-        'Company name (Optional)',
-        'Company address (Optional)',
-      ],
-    },
-    {
-      type: 'assistant',
-      content: 'Next, tell me a bit more about what the client is looking for and I\'ll help you find relevant',
-      highlight: ['Solution Package', 'Services'],
-    },
-  ])
+interface ChatPanelProps {
+  dealName: string
+  messages: ChatMessage[]
+}
 
+export function ChatPanel({ dealName, messages }: ChatPanelProps) {
   return (
     <div className="flex h-full flex-col bg-white">
       <div className="flex-1 min-h-0" aria-hidden />
