@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, ChevronRight, Edit2, Sparkles, Plus } from 'lucide-react'
+import { ChevronDown, ChevronRight, Edit2, Sparkles, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -26,10 +26,10 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     client: true,
     executive: true,
-    scope: false,
     solution: false,
+    ourTeam: false,
+    industryExperience: false,
     appendix: false,
-    invoice: false,
   })
   const [isClientEditing, setIsClientEditing] = useState(false)
   const [executiveEditMode, setExecutiveEditMode] = useState(false)
@@ -48,6 +48,41 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     companyShortName: '',
     companyAddress: '',
   })
+
+  const defaultVasPart1 = [
+    {
+      description:
+        'Review of prior year balances as required under Australian Auditing Standards in order to be able to provide an unmodified audit opinion.',
+      oneOff: 'No charge',
+      recurring: 'No charge',
+    },
+    {
+      description: 'Review of the impact of any new accounting standards',
+      oneOff: 'No charge',
+      recurring: 'No charge',
+    },
+  ]
+  const defaultVasPart3 = [
+    { natureOfService: 'Reasonable Assurance on Financial Report', statutoryAudit: true, valueAdd: true },
+    {
+      natureOfService: 'Communication of Process and Findings to Directors and Management',
+      statutoryAudit: true,
+      valueAdd: true,
+    },
+    { natureOfService: 'Understanding of Internal Controls', statutoryAudit: true, valueAdd: true },
+    {
+      natureOfService:
+        "Access to partners and senior staff at In.Corp without the worry that the 'clock is ticking'. As we do not complete timesheets it has allowed us to focus more on our philosophy of providing value add service to our clients without you having to worry about additional costs.",
+      statutoryAudit: false,
+      valueAdd: true,
+    },
+  ]
+  const [vasPart1, setVasPart1] = useState<Array<{ description: string; oneOff: string; recurring: string }>>(defaultVasPart1)
+  const [vasPart2, setVasPart2] = useState<Array<{ description: string; oneOff: string; recurring: string }>>([])
+  const [vasPart3, setVasPart3] = useState<
+    Array<{ natureOfService: string; statutoryAudit: boolean; valueAdd: boolean }>
+  >(defaultVasPart3)
+  const [editingNatureCell, setEditingNatureCell] = useState<string | null>(null)
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
@@ -296,7 +331,8 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
             </div>
           </Collapsible>
 
-          {/* Executive Summary - no Radix Collapsible to avoid swallowing clicks */}
+          {/* Executive Summary - temporarily hidden */}
+          {false && (
           <div className="group rounded-lg border border-gray-200 bg-white">
             <div className="flex h-12 w-full shrink-0 items-center justify-between px-4 hover:bg-gray-50">
               <button
@@ -428,27 +464,356 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
                 </div>
             )}
           </div>
+          )}
 
-          {/* Scope of Services */}
-          <Collapsible open={openSections.scope} onOpenChange={() => toggleSection('scope')}>
+          {/* Value Added Services */}
+          <Collapsible open={openSections.solution} onOpenChange={() => toggleSection('solution')}>
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      !openSections.solution && '-rotate-90'
+                    )}
+                  />
+                  <span className="text-sm font-medium text-black">Value Added Services</span>
+                </div>
+                <span className="text-xs text-gray-500">Not Ready</span>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-gray-100 px-4 py-4 space-y-5">
+                  {/* Part 1 */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-black mb-2">Value added at no charge</h4>
+                    <div className="overflow-x-auto rounded border border-gray-200">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50">
+                            <th className="px-2 py-1.5 text-left font-medium text-black">Nature of service</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">One-off Fee (SGD)</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">Recurring Fee (SGD)</th>
+                            <th className="px-2 py-1.5 w-8" />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {vasPart1.map((row, i) => (
+                            <tr key={i} className="border-b border-gray-100 last:border-0">
+                              <td className="px-2 py-1.5 align-top min-w-[200px]">
+                                {editingNatureCell === `1-${i}` ? (
+                                  <Textarea
+                                    value={row.description}
+                                    onChange={(e) =>
+                                      setVasPart1((prev) => {
+                                        const next = [...prev]
+                                        next[i] = { ...next[i], description: e.target.value }
+                                        return next
+                                      })
+                                    }
+                                    onBlur={() => setEditingNatureCell(null)}
+                                    rows={4}
+                                    className="min-h-0 resize-none border border-gray-300 text-xs py-1 px-2 focus-visible:ring-1"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingNatureCell(`1-${i}`)}
+                                    className="w-full text-left rounded border border-transparent hover:border-gray-300 py-1 px-2 min-h-[2.5rem]"
+                                  >
+                                    <span className="line-clamp-4 text-gray-900 block">
+                                      {row.description || 'Click to edit'}
+                                    </span>
+                                  </button>
+                                )}
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <Input
+                                  value={row.oneOff}
+                                  onChange={(e) =>
+                                    setVasPart1((prev) => {
+                                      const next = [...prev]
+                                      next[i] = { ...next[i], oneOff: e.target.value }
+                                      return next
+                                    })
+                                  }
+                                  className="border border-gray-300 text-xs h-7 px-2"
+                                />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <Input
+                                  value={row.recurring}
+                                  onChange={(e) =>
+                                    setVasPart1((prev) => {
+                                      const next = [...prev]
+                                      next[i] = { ...next[i], recurring: e.target.value }
+                                      return next
+                                    })
+                                  }
+                                  className="border border-gray-300 text-xs h-7 px-2"
+                                />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setVasPart1((prev) => prev.filter((_, idx) => idx !== i))}
+                                  className="text-gray-500 hover:text-black"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-1.5 border-gray-300 text-black hover:bg-gray-50 text-xs h-7"
+                      onClick={() => setVasPart1((prev) => [...prev, { description: '', oneOff: 'No charge', recurring: 'No charge' }])}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add row
+                    </Button>
+                  </div>
+
+                  {/* Part 2 */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-black mb-2">Custom services</h4>
+                    <div className="overflow-x-auto rounded border border-gray-200">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50">
+                            <th className="px-2 py-1.5 text-left font-medium text-black">Nature of service</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">One-off Fee (SGD)</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">Recurring Fee (SGD)</th>
+                            <th className="px-2 py-1.5 w-8" />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {vasPart2.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="px-2 py-3 text-center text-gray-500 text-xs">
+                                No rows yet. Add rows or fill via dialogue later.
+                              </td>
+                            </tr>
+                          ) : (
+                            vasPart2.map((row, i) => (
+                              <tr key={i} className="border-b border-gray-100 last:border-0">
+                                <td className="px-2 py-1.5 align-top min-w-[200px]">
+                                  {editingNatureCell === `2-${i}` ? (
+                                    <Textarea
+                                      value={row.description}
+                                      onChange={(e) =>
+                                        setVasPart2((prev) => {
+                                          const next = [...prev]
+                                          next[i] = { ...next[i], description: e.target.value }
+                                          return next
+                                        })
+                                      }
+                                      onBlur={() => setEditingNatureCell(null)}
+                                      rows={4}
+                                      className="min-h-0 resize-none border border-gray-300 text-xs py-1 px-2 focus-visible:ring-1"
+                                      autoFocus
+                                      placeholder="Service description"
+                                    />
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingNatureCell(`2-${i}`)}
+                                      className="w-full text-left rounded border border-transparent hover:border-gray-300 py-1 px-2 min-h-[2.5rem]"
+                                    >
+                                      <span className="line-clamp-4 text-gray-900 block">
+                                        {row.description || 'Click to edit'}
+                                      </span>
+                                    </button>
+                                  )}
+                                </td>
+                                <td className="px-2 py-1.5">
+                                  <Input
+                                    value={row.oneOff}
+                                    onChange={(e) =>
+                                      setVasPart2((prev) => {
+                                        const next = [...prev]
+                                        next[i] = { ...next[i], oneOff: e.target.value }
+                                        return next
+                                      })
+                                    }
+                                    className="border border-gray-300 text-xs h-7 px-2"
+                                    placeholder="e.g. No charge"
+                                  />
+                                </td>
+                                <td className="px-2 py-1.5">
+                                  <Input
+                                    value={row.recurring}
+                                    onChange={(e) =>
+                                      setVasPart2((prev) => {
+                                        const next = [...prev]
+                                        next[i] = { ...next[i], recurring: e.target.value }
+                                        return next
+                                      })
+                                    }
+                                    className="border border-gray-300 text-xs h-7 px-2"
+                                    placeholder="e.g. -"
+                                  />
+                                </td>
+                                <td className="px-2 py-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setVasPart2((prev) => prev.filter((_, idx) => idx !== i))}
+                                    className="text-gray-500 hover:text-black"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-1.5 border-gray-300 text-black hover:bg-gray-50 text-xs h-7"
+                      onClick={() => setVasPart2((prev) => [...prev, { description: '', oneOff: '', recurring: '' }])}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add row
+                    </Button>
+                  </div>
+
+                  {/* Part 3 */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-black mb-2">Going above and beyond</h4>
+                    <div className="overflow-x-auto rounded border border-gray-200">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50">
+                            <th className="px-2 py-1.5 text-left font-medium text-black">Nature of service</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-20">Statutory Audit</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-20">In.Corp Value Add</th>
+                            <th className="px-2 py-1.5 w-8" />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {vasPart3.map((row, i) => (
+                            <tr key={i} className="border-b border-gray-100 last:border-0">
+                              <td className="px-2 py-1.5 align-top min-w-[200px]">
+                                {editingNatureCell === `3-${i}` ? (
+                                  <Textarea
+                                    value={row.natureOfService}
+                                    onChange={(e) =>
+                                      setVasPart3((prev) => {
+                                        const next = [...prev]
+                                        next[i] = { ...next[i], natureOfService: e.target.value }
+                                        return next
+                                      })
+                                    }
+                                    onBlur={() => setEditingNatureCell(null)}
+                                    rows={4}
+                                    className="min-h-0 resize-none border border-gray-300 text-xs py-1 px-2 focus-visible:ring-1"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingNatureCell(`3-${i}`)}
+                                    className="w-full text-left rounded border border-transparent hover:border-gray-300 py-1 px-2 min-h-[2.5rem]"
+                                  >
+                                    <span className="line-clamp-4 text-gray-900 block">
+                                      {row.natureOfService || 'Click to edit'}
+                                    </span>
+                                  </button>
+                                )}
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <select
+                                  value={row.statutoryAudit ? 'Yes' : 'No'}
+                                  onChange={(e) =>
+                                    setVasPart3((prev) => {
+                                      const next = [...prev]
+                                      next[i] = { ...next[i], statutoryAudit: e.target.value === 'Yes' }
+                                      return next
+                                    })
+                                  }
+                                  className="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-black h-7 w-full"
+                                >
+                                  <option value="Yes">Yes</option>
+                                  <option value="No">No</option>
+                                </select>
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <select
+                                  value={row.valueAdd ? 'Yes' : 'No'}
+                                  onChange={(e) =>
+                                    setVasPart3((prev) => {
+                                      const next = [...prev]
+                                      next[i] = { ...next[i], valueAdd: e.target.value === 'Yes' }
+                                      return next
+                                    })
+                                  }
+                                  className="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-black h-7 w-full"
+                                >
+                                  <option value="Yes">Yes</option>
+                                  <option value="No">No</option>
+                                </select>
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setVasPart3((prev) => prev.filter((_, idx) => idx !== i))}
+                                  className="text-gray-500 hover:text-black"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-1.5 border-gray-300 text-black hover:bg-gray-50 text-xs h-7"
+                      onClick={() =>
+                        setVasPart3((prev) => [...prev, { natureOfService: '', statutoryAudit: true, valueAdd: true }])
+                      }
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add row
+                    </Button>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+
+          {/* Our team */}
+          <Collapsible open={openSections.ourTeam} onOpenChange={() => toggleSection('ourTeam')}>
             <div className="group rounded-lg border border-gray-200 bg-white">
               <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronRight className="h-4 w-4" />
-                  <span className="text-sm font-medium text-black">Scope of Services</span>
+                  <span className="text-sm font-medium text-black">Our team</span>
                 </div>
                 <span className="text-xs text-gray-500">Not Ready</span>
               </CollapsibleTrigger>
             </div>
           </Collapsible>
 
-          {/* Solution Package + Services & Prices */}
-          <Collapsible open={openSections.solution} onOpenChange={() => toggleSection('solution')}>
+          {/* Relevant Industry experience */}
+          <Collapsible open={openSections.industryExperience} onOpenChange={() => toggleSection('industryExperience')}>
             <div className="group rounded-lg border border-gray-200 bg-white">
               <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <ChevronRight className="h-4 w-4" />
-                  <span className="text-sm font-medium text-black">Solution Package + Services & Prices</span>
+                  <span className="text-sm font-medium text-black">Relevant Industry experience</span>
                 </div>
                 <span className="text-xs text-gray-500">Not Ready</span>
               </CollapsibleTrigger>
@@ -530,19 +895,6 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
                   </div>
                 </div>
               </CollapsibleContent>
-            </div>
-          </Collapsible>
-
-          {/* First Total Invoice Value (Optional) */}
-          <Collapsible open={openSections.invoice} onOpenChange={() => toggleSection('invoice')}>
-            <div className="group rounded-lg border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
-                <div className="flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
-                  <span className="text-sm font-medium text-black">First Total Invoice Value (Optional)</span>
-                </div>
-                <span className="text-xs text-gray-500">Not Ready</span>
-              </CollapsibleTrigger>
             </div>
           </Collapsible>
         </div>
