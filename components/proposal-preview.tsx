@@ -1180,7 +1180,7 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                           className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
                         >
                           <div className="space-y-3">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 rounded bg-gray-100 px-2 py-1.5">
                               <div className="h-8 w-8 shrink-0 rounded bg-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-500">
                                 {member.name
                                   ? member.name.split(/\s+/).map((s) => s[0]).join('').slice(0, 2).toUpperCase()
@@ -1234,7 +1234,7 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                                 value={member.bio}
                                 onChange={(e) => updateTeamMember(member.id, 'bio', e.target.value)}
                                 rows={3}
-                                className="min-h-0 resize-none border border-gray-300 text-xs"
+                                className="min-h-0 resize-y rounded border border-gray-300 px-3 py-2 text-xs placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
                                 placeholder="80–150 words"
                               />
                               {teamBioImproveId === member.id && (
