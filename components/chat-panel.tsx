@@ -46,7 +46,9 @@ export function ChatPanel({ dealName, messages, onSendMessage }: ChatPanelProps)
               {message.type === 'assistant' && (
                 <div className="flex justify-start">
                   <div className="space-y-2 rounded-lg bg-gray-50 px-3 py-2 max-w-[85%]">
-                    <p className="text-sm leading-relaxed text-gray-900">{message.content}</p>
+                    {!message.highlight && (
+                      <p className="text-sm leading-relaxed text-gray-900">{message.content}</p>
+                    )}
                     {message.list && (
                       <ul className="ml-4 list-disc space-y-0.5 text-sm text-gray-900">
                         {message.list.map((item, i) => (
@@ -62,12 +64,12 @@ export function ChatPanel({ dealName, messages, onSendMessage }: ChatPanelProps)
                       </ol>
                     )}
                     {message.highlight && (
-                      <p className="text-sm text-gray-900">
-                        {'Next, tell me a bit more about what the client is looking for and I\'ll help you find relevant '}
+                      <p className="text-sm leading-relaxed text-gray-900">
+                        Next, tell me a bit more about what the client is looking for and I'll help you find relevant{' '}
                         <span className="font-semibold text-gray-800">{message.highlight[0]}</span>
                         {' and '}
                         <span className="font-semibold text-gray-800">{message.highlight[1]}</span>
-                        {'.'}
+                        .
                       </p>
                     )}
                   </div>
