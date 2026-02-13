@@ -123,6 +123,107 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     },
   ]
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(defaultTeamMembers)
+  const [ourTeamTitle, setOurTeamTitle] = useState('OUR CLIENT SERVICE TEAM')
+  const [ourTeamDescription, setOurTeamDescription] = useState(
+    'Our team has the experience and capability to meet your requirements. Our engagements are directed and conducted by senior qualified professional staff.'
+  )
+  const [ourTeamFootnotes, setOurTeamFootnotes] = useState('')
+  const [industryTitle, setIndustryTitle] = useState('RELEVANT INDUSTRY EXPERIENCE')
+  const [industryDescription, setIndustryDescription] = useState(
+    'We have considerable experience in providing external audits and other professional services to public and private companies across a range of sectors. Representative clients include:'
+  )
+  const [industryFootnotes, setIndustryFootnotes] = useState('')
+  const [industryCredentials, setIndustryCredentials] = useState<Array<{ id: string; companyName: string; industry?: string }>>([])
+  type IndustryLibraryItem = { industry: string; companyName: string }
+  const industryLibrary: IndustryLibraryItem[] = [
+    { industry: 'Construction', companyName: 'Deicorp Property Group Pty Ltd' },
+    { industry: 'Financial services', companyName: 'WT Financial Group Limited' },
+    { industry: 'Manufacturing', companyName: 'Jennchem Australia Pty Ltd' },
+    { industry: 'Financial services', companyName: 'Scalare Partners Holdings Limited' },
+    { industry: 'Mining & energy', companyName: 'Lithium Energy Ltd' },
+    { industry: 'Technology', companyName: 'Northbridge Network Systems Pty Ltd' },
+    { industry: 'Logistics', companyName: 'COSCO Shipping (Oceania) Pty Ltd' },
+    { industry: 'Life science', companyName: 'EZZ Life Science Holdings Limited' },
+    { industry: 'Technology', companyName: 'BluGlass Limited' },
+    { industry: 'Energy', companyName: 'Sungrow Power Australia Pty Ltd' },
+    { industry: 'Construction', companyName: 'Leda Group' },
+    { industry: 'Energy', companyName: 'United H2 Hydrogen Limited' },
+  ]
+  const INDUSTRY_CREDENTIAL_MAX = 12
+  const [industryLibrarySelected, setIndustryLibrarySelected] = useState<number[]>([])
+  const [industryLibraryMessage, setIndustryLibraryMessage] = useState<string | null>(null)
+  const [industryLibraryFilter, setIndustryLibraryFilter] = useState<string>('')
+  const [industryLibrarySortBy, setIndustryLibrarySortBy] = useState<'industry' | 'company' | null>(null)
+  const [industryLibrarySortDir, setIndustryLibrarySortDir] = useState<'asc' | 'desc'>('asc')
+  const industryLibraryUniqueIndustries = [...new Set(industryLibrary.map((i) => i.industry))].sort()
+  const industryLibraryFilteredAndSorted = (() => {
+    let list = industryLibrary.map((item, originalIdx) => ({ item, originalIdx }))
+    if (industryLibraryFilter) {
+      list = list.filter(({ item }) => item.industry === industryLibraryFilter)
+    }
+    if (industryLibrarySortBy) {
+      list = [...list].sort((a, b) => {
+        const va = industryLibrarySortBy === 'industry' ? a.item.industry : a.item.companyName
+        const vb = industryLibrarySortBy === 'industry' ? b.item.industry : b.item.companyName
+        const c = va.localeCompare(vb, undefined, { sensitivity: 'base' })
+        return industryLibrarySortDir === 'asc' ? c : -c
+      })
+    }
+    return list
+  })()
+  const toggleIndustryLibrarySelected = (idx: number) => {
+    setIndustryLibrarySelected((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    )
+  }
+  const addIndustryCredentialsFromLibraryBatch = () => {
+    const remaining = INDUSTRY_CREDENTIAL_MAX - industryCredentials.length
+    if (remaining <= 0) {
+      setIndustryLibraryMessage('Maximum 12 credentials. No slots left.')
+      return
+    }
+    const indices = [...industryLibrarySelected].sort((a, b) => a - b)
+    const toAdd = indices
+      .map((i) => industryLibrary[i])
+      .filter(Boolean)
+      .slice(0, remaining)
+    if (toAdd.length === 0) {
+      setIndustryLibrarySelected([])
+      return
+    }
+    setIndustryCredentials((prev) => [
+      ...prev,
+      ...toAdd.map((item) => ({
+        id: `cred-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        companyName: item.companyName,
+        industry: item.industry,
+      })),
+    ])
+    setIndustryLibrarySelected([])
+    if (indices.length > remaining) {
+      setIndustryLibraryMessage(`Maximum 12 credentials. ${toAdd.length} added this time.`)
+    } else {
+      setIndustryLibraryMessage(null)
+    }
+  }
+  const addIndustryCredentialBlank = () => {
+    if (industryCredentials.length >= INDUSTRY_CREDENTIAL_MAX) {
+      setIndustryLibraryMessage('Maximum 12 credentials. No slots left.')
+      return
+    }
+    setIndustryCredentials((prev) => [
+      ...prev,
+      { id: `cred-${Date.now()}`, companyName: '' },
+    ])
+  }
+  const removeIndustryCredential = (id: string) => {
+    setIndustryCredentials((prev) => prev.filter((c) => c.id !== id))
+  }
+  const updateIndustryCredential = (id: string, companyName: string) => {
+    setIndustryCredentials((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, companyName } : c))
+    )
+  }
   const [teamBioImproveId, setTeamBioImproveId] = useState<string | null>(null)
   const [teamBioAiResult, setTeamBioAiResult] = useState<string | null>(null)
   const [teamBioAiPrompt, setTeamBioAiPrompt] = useState('')
@@ -945,7 +1046,33 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="border-t border-gray-100 px-4 py-4">
-                  <p className="text-xs text-gray-600 mb-3">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-normal text-black">
+                        Title <span className="text-gray-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ourTeamTitle}
+                        onChange={(e) => setOurTeamTitle(e.target.value)}
+                        placeholder="Please enter..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-normal text-black">
+                        Description (Optional)
+                      </label>
+                      <Textarea
+                        rows={2}
+                        value={ourTeamDescription}
+                        onChange={(e) => setOurTeamDescription(e.target.value)}
+                        placeholder="Please enter..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none resize-y min-h-0"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-3 mt-4">
                     Maintain portrait, name, position, contact and bio (80–150 words). Partners support AI Improve for bio.
                   </p>
                   <div className="space-y-4">
@@ -1109,8 +1236,20 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
                       >
                         Add blank (free fill-in)
                       </DropdownMenuItem>
-                    </DropdownMenuContent>
+                      </DropdownMenuContent>
                   </DropdownMenu>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <label className="mb-2 block text-sm font-normal text-black">
+                      Footnotes (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={ourTeamFootnotes}
+                      onChange={(e) => setOurTeamFootnotes(e.target.value)}
+                      placeholder="Please enter..."
+                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                    />
+                  </div>
                 </div>
               </CollapsibleContent>
             </div>
@@ -1121,11 +1260,246 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
             <div className="group rounded-lg border border-gray-200 bg-white">
               <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      !openSections.industryExperience && '-rotate-90'
+                    )}
+                  />
                   <span className="text-sm font-medium text-black">Relevant Industry experience</span>
                 </div>
-                <span className="text-xs text-gray-500">Not Ready</span>
+                <div
+                  className="flex h-8 items-center gap-1 px-2 text-sm text-gray-600 hover:text-black"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add
+                </div>
               </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-gray-100 px-4 py-4">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-normal text-black">
+                        Title <span className="text-gray-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={industryTitle}
+                        onChange={(e) => setIndustryTitle(e.target.value)}
+                        placeholder="Please enter..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-normal text-black">
+                        Description (Optional)
+                      </label>
+                      <Textarea
+                        rows={2}
+                        value={industryDescription}
+                        onChange={(e) => setIndustryDescription(e.target.value)}
+                        placeholder="Please enter..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none resize-y min-h-0"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="mb-2 block text-sm font-normal text-black">Credentials (Company name)</label>
+                    <table className="w-full border-collapse border border-gray-200 text-xs">
+                      <tbody>
+                        {industryCredentials.length === 0 ? (
+                          <tr>
+                            <td className="border border-gray-200 py-2 px-3 text-gray-500">No entries yet. Add from library or add blank.</td>
+                          </tr>
+                        ) : (
+                          industryCredentials.map((cred) => (
+                            <tr key={cred.id} className="border-b border-gray-200 last:border-b-0">
+                              <td className="border border-gray-200 py-1.5 px-2 align-top w-full">
+                                <input
+                                  type="text"
+                                  value={cred.companyName}
+                                  onChange={(e) => updateIndustryCredential(cred.id, e.target.value)}
+                                  placeholder="Company name"
+                                  className="w-full min-w-0 rounded border border-gray-300 px-2 py-1 text-xs placeholder:text-gray-400 focus:border-gray-400 focus:outline-none bg-transparent"
+                                />
+                              </td>
+                              <td className="border border-gray-200 py-1.5 px-2 w-8 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => removeIndustryCredential(cred.id)}
+                                  className="text-gray-500 hover:text-black"
+                                  aria-label="Remove"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 border-gray-300 text-black hover:bg-gray-50 text-xs h-7"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add credential
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[220px]">
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger className="text-xs">
+                            From team library
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent className="max-h-[380px] overflow-hidden flex flex-col w-[320px]" sideOffset={4}>
+                            <div className="p-2 border-b border-gray-100 text-xs text-gray-600">
+                              {industryCredentials.length < INDUSTRY_CREDENTIAL_MAX
+                                ? `Slots left: ${INDUSTRY_CREDENTIAL_MAX - industryCredentials.length} (max ${INDUSTRY_CREDENTIAL_MAX})`
+                                : 'Maximum 12 credentials.'}
+                            </div>
+                            <div className="p-2 border-b border-gray-100 flex items-center gap-2">
+                              <span className="text-xs text-gray-600 shrink-0">Filter:</span>
+                              <select
+                                value={industryLibraryFilter}
+                                onChange={(e) => setIndustryLibraryFilter(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex-1 min-w-0 rounded border border-gray-300 px-2 py-1 text-xs bg-white text-black focus:border-gray-400 focus:outline-none"
+                              >
+                                <option value="">All industries</option>
+                                {industryLibraryUniqueIndustries.map((ind) => (
+                                  <option key={ind} value={ind}>{ind}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="overflow-auto flex-1 min-h-0">
+                              <table className="w-full border-collapse text-xs">
+                                <thead>
+                                  <tr className="border-b border-gray-200 bg-gray-50">
+                                    <th className="w-8 py-1.5 px-1 text-left font-normal text-gray-600"> </th>
+                                    <th
+                                      className="py-1.5 px-2 text-left font-normal text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        if (industryLibrarySortBy === 'industry') {
+                                          if (industryLibrarySortDir === 'asc') {
+                                            setIndustryLibrarySortDir('desc')
+                                          } else {
+                                            setIndustryLibrarySortBy(null)
+                                          }
+                                        } else {
+                                          setIndustryLibrarySortBy('industry')
+                                          setIndustryLibrarySortDir('asc')
+                                        }
+                                      }}
+                                    >
+                                      Industry {industryLibrarySortBy === 'industry' ? (industryLibrarySortDir === 'asc' ? ' ↑' : ' ↓') : ''}
+                                    </th>
+                                    <th
+                                      className="py-1.5 px-2 text-left font-normal text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        if (industryLibrarySortBy === 'company') {
+                                          if (industryLibrarySortDir === 'asc') {
+                                            setIndustryLibrarySortDir('desc')
+                                          } else {
+                                            setIndustryLibrarySortBy(null)
+                                          }
+                                        } else {
+                                          setIndustryLibrarySortBy('company')
+                                          setIndustryLibrarySortDir('asc')
+                                        }
+                                      }}
+                                    >
+                                      Company name {industryLibrarySortBy === 'company' ? (industryLibrarySortDir === 'asc' ? ' ↑' : ' ↓') : ''}
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {industryLibraryFilteredAndSorted.map(({ item, originalIdx }) => (
+                                    <tr
+                                      key={originalIdx}
+                                      className="border-b border-gray-100 hover:bg-gray-50"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        if (industryCredentials.length >= INDUSTRY_CREDENTIAL_MAX && !industryLibrarySelected.includes(originalIdx)) return
+                                        toggleIndustryLibrarySelected(originalIdx)
+                                      }}
+                                    >
+                                      <td className="py-1 px-1">
+                                        <input
+                                          type="checkbox"
+                                          checked={industryLibrarySelected.includes(originalIdx)}
+                                          onChange={() => {
+                                            if (industryCredentials.length >= INDUSTRY_CREDENTIAL_MAX && !industryLibrarySelected.includes(originalIdx)) return
+                                            toggleIndustryLibrarySelected(originalIdx)
+                                          }}
+                                          onClick={(e) => e.stopPropagation()}
+                                          disabled={industryCredentials.length >= INDUSTRY_CREDENTIAL_MAX && !industryLibrarySelected.includes(originalIdx)}
+                                          className="rounded border-gray-300"
+                                        />
+                                      </td>
+                                      <td className="py-1.5 px-2 text-black">{item.industry}</td>
+                                      <td className="py-1.5 px-2 text-black">{item.companyName}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                            {industryLibraryMessage && (
+                              <div className="px-2 py-1 text-xs text-gray-600 border-t border-gray-100">
+                                {industryLibraryMessage}
+                              </div>
+                            )}
+                            <div className="p-2 border-t border-gray-100">
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="w-full h-7 text-xs bg-gray-600 hover:bg-gray-700 disabled:opacity-50"
+                                disabled={industryCredentials.length >= INDUSTRY_CREDENTIAL_MAX || industryLibrarySelected.length === 0}
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  addIndustryCredentialsFromLibraryBatch()
+                                }}
+                              >
+                                Add selected ({industryLibrarySelected.length})
+                              </Button>
+                            </div>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuItem
+                          className="text-xs"
+                          onSelect={addIndustryCredentialBlank}
+                          disabled={industryCredentials.length >= INDUSTRY_CREDENTIAL_MAX}
+                        >
+                          Add blank (company name only)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <label className="mb-2 block text-sm font-normal text-black">
+                      Footnotes (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={industryFootnotes}
+                      onChange={(e) => setIndustryFootnotes(e.target.value)}
+                      placeholder="Please enter..."
+                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </CollapsibleContent>
             </div>
           </Collapsible>
 
@@ -1170,10 +1544,10 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
                       <label className="mb-2 block text-sm font-normal text-black">
                         Description (Optional)
                       </label>
-                      <input
-                        type="text"
+                      <Textarea
+                        rows={2}
                         placeholder="Please enter..."
-                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none resize-y min-h-0"
                       />
                     </div>
 
