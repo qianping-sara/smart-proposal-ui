@@ -27,8 +27,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import type { TemplateId } from '@/lib/users'
 
 interface ProposalPreviewProps {
+  template?: TemplateId
   dealInfo: {
     dealName: string
     pipeline: string
@@ -43,11 +45,12 @@ interface ProposalPreviewProps {
   onCustomServicesChange?: (next: Array<{ description: string; oneOff: string; recurring: string }> | ((prev: Array<{ description: string; oneOff: string; recurring: string }>) => Array<{ description: string; oneOff: string; recurring: string }>)) => void
 }
 
-export function ProposalPreview({ dealInfo, customServices, onCustomServicesChange }: ProposalPreviewProps) {
+export function ProposalPreview({ template = 'audit', dealInfo, customServices, onCustomServicesChange }: ProposalPreviewProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     client: true,
     executive: true,
     solution: false,
+    solutionPackage: false,
     ourTeam: false,
     industryExperience: false,
     timeline: false,
@@ -758,6 +761,8 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
           </div>
           )}
 
+          {template === 'audit' && (
+          <>
           {/* Value Added Services */}
           <Collapsible open={openSections.solution} onOpenChange={() => toggleSection('solution')}>
             <div className="group rounded-lg border border-gray-200 bg-white">
@@ -1625,6 +1630,32 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
               </CollapsibleContent>
             </div>
           </Collapsible>
+          </>
+          )}
+
+          {template === 'standard' && (
+          <Collapsible open={openSections.solutionPackage} onOpenChange={() => toggleSection('solutionPackage')}>
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      !openSections.solutionPackage && '-rotate-90'
+                    )}
+                  />
+                  <span className="text-sm font-medium text-black">Solution Package + Services &amp; Prices</span>
+                </div>
+                <span className="text-xs text-gray-500">Not Ready</span>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-gray-100 px-4 py-4">
+                  <p className="text-sm text-gray-600">Details to be implemented.</p>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+          )}
 
           {/* Appendix (Optional) */}
           <Collapsible open={openSections.appendix} onOpenChange={() => toggleSection('appendix')}>

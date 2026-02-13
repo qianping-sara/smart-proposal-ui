@@ -11,7 +11,7 @@ export const KENYU_CHAT_LIST = [
 ] as const
 
 export const HUIMAN_CHAT_LIST = [
-  'Roland Berger 的',
+  'Roland Berger',
   'Quotation_Truthkeep',
   'JL Oceania Pty Ltd',
   'Nicholas Vrarnas',

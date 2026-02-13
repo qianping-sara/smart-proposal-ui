@@ -408,6 +408,7 @@ export default function Page() {
               currentChat={currentChat}
             />
             <ChatInterface
+              template={currentUser.template}
               dealInfo={dealInfo}
               dealName={currentChat ?? 'testing'}
               messages={currentChatMessages}

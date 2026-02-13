@@ -13,8 +13,10 @@ import { ChatPanel } from '@/components/chat-panel'
 import { ProposalPreview } from '@/components/proposal-preview'
 
 import type { ChatMessage } from '@/lib/chat-types'
+import type { TemplateId } from '@/lib/users'
 
 interface ChatInterfaceProps {
+  template?: TemplateId
   dealInfo: {
     dealName: string
     pipeline: string
@@ -28,7 +30,7 @@ interface ChatInterfaceProps {
   onCustomServicesChange?: (next: Array<{ description: string; oneOff: string; recurring: string }> | ((prev: Array<{ description: string; oneOff: string; recurring: string }>) => Array<{ description: string; oneOff: string; recurring: string }>)) => void
 }
 
-export function ChatInterface({ dealInfo, dealName, messages, onSendMessage, customServices, onCustomServicesChange }: ChatInterfaceProps) {
+export function ChatInterface({ template = 'audit', dealInfo, dealName, messages, onSendMessage, customServices, onCustomServicesChange }: ChatInterfaceProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2">
@@ -54,7 +56,7 @@ export function ChatInterface({ dealInfo, dealName, messages, onSendMessage, cus
         </ResizablePanel>
         <ResizableHandle className="w-px bg-gray-300 hover:bg-gray-400" />
         <ResizablePanel defaultSize={50} minSize={30}>
-          <ProposalPreview dealInfo={dealInfo} customServices={customServices} onCustomServicesChange={onCustomServicesChange} />
+          <ProposalPreview template={template} dealInfo={dealInfo} customServices={customServices} onCustomServicesChange={onCustomServicesChange} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
