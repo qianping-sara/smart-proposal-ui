@@ -1707,21 +1707,21 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-xs border-collapse">
+                          <div className="overflow-x-auto min-w-0">
+                            <table className="w-full text-xs border-collapse table-fixed min-w-[480px]">
                               <thead>
                                 <tr className="border-b border-gray-200 bg-gray-100">
-                                  <th className="px-2 py-1.5 text-left font-medium text-black">Scope of work</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-20">Monthly/Quarterly</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-20">Annual</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-20">Once-off</th>
-                                  <th className="px-1 py-1.5 w-6 text-left font-medium text-black" aria-label="Action" />
+                                  <th className="px-2 py-1.5 text-left font-medium text-black w-[40%] min-w-[160px]">Scope of work</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[20%] min-w-[110px] whitespace-nowrap">Monthly/Quarterly</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[20%] min-w-[80px]">Annual</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[20%] min-w-[90px]">Once-off</th>
+                                  <th className="px-1 py-1.5 w-6 shrink-0 text-left font-medium text-black" aria-label="Action" />
                                 </tr>
                               </thead>
                               <tbody>
                                 {pkg.services.map((row) => (
                                   <tr key={row.id} className="border-b border-gray-100 last:border-0 bg-white">
-                                    <td className="px-2 py-1.5 align-top min-w-[160px] bg-white">
+                                    <td className="px-2 py-1.5 align-top bg-white overflow-hidden min-w-[160px]">
                                       <Textarea
                                         value={row.scopeOfWork}
                                         onChange={(e) =>
@@ -1743,7 +1743,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                         placeholder="Scope of work..."
                                       />
                                     </td>
-                                    <td className="px-1.5 py-1.5 align-top bg-white">
+                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[110px]">
                                       <Input
                                         value={row.monthlyQuarterly}
                                         onChange={(e) =>
@@ -1764,7 +1764,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                         placeholder="-"
                                       />
                                     </td>
-                                    <td className="px-1.5 py-1.5 align-top bg-white">
+                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[80px]">
                                       <Input
                                         value={row.annual}
                                         onChange={(e) =>
@@ -1785,7 +1785,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                         placeholder="-"
                                       />
                                     </td>
-                                    <td className="px-1.5 py-1.5 align-top bg-white">
+                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[90px]">
                                       <Input
                                         value={row.onceOff}
                                         onChange={(e) =>
@@ -1806,7 +1806,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                         placeholder="-"
                                       />
                                     </td>
-                                    <td className="px-1 py-1.5 align-top bg-white w-6">
+                                    <td className="px-1 py-1.5 align-top bg-white w-6 shrink-0">
                                       <button
                                         type="button"
                                         onClick={() =>
