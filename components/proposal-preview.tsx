@@ -1169,8 +1169,9 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mb-3 mt-4">
-                    Name, title, phone and email are synced from the database. Hover on name to view. Bio is editable; partners support AI Improve.
+                  <label className="mb-2 mt-4 block text-sm font-normal text-black">Team</label>
+                  <p className="text-xs text-gray-600 mb-3">
+                    Name, title, phone and email are synced from the database. Hover on name to view. Bio is editable and support AI Improve.
                   </p>
                   <TooltipProvider delayDuration={200}>
                     <div className="space-y-4">
