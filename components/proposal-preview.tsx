@@ -21,6 +21,12 @@ import {
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { DynamicTableBuilder } from '@/components/dynamic-table-builder'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ProposalPreviewProps {
   dealInfo: {
@@ -1164,60 +1170,49 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                     </div>
                   </div>
                   <p className="text-xs text-gray-600 mb-3 mt-4">
-                    Maintain portrait, name, position, contact and bio (80–150 words). Partners support AI Improve for bio.
+                    Name, title, phone and email are synced from the database. Hover on name to view. Bio is editable; partners support AI Improve.
                   </p>
-                  <div className="space-y-4">
-                    {teamMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
-                      >
-                        <div className="flex items-start gap-2">
-                          <div className="h-8 w-8 shrink-0 rounded bg-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-500">
-                            {member.name
-                              ? member.name.split(/\s+/).map((s) => s[0]).join('').slice(0, 2).toUpperCase()
-                              : '—'}
-                          </div>
-                          <div className="min-w-0 flex-1 space-y-2">
-                            <div className="flex gap-2 items-center flex-wrap">
-                              <Input
-                                value={member.name}
-                                onChange={(e) => updateTeamMember(member.id, 'name', e.target.value)}
-                                placeholder="Name"
-                                className="border-gray-300 text-xs h-7 w-36"
-                              />
-                              <Input
-                                value={member.position}
-                                onChange={(e) => updateTeamMember(member.id, 'position', e.target.value)}
-                                placeholder="Position"
-                                className="border-gray-300 text-xs h-7 flex-1 min-w-[120px]"
-                              />
+                  <TooltipProvider delayDuration={200}>
+                    <div className="space-y-4">
+                      {teamMembers.map((member) => (
+                        <div
+                          key={member.id}
+                          className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="shrink-0 flex items-center gap-2 w-36">
+                              <div className="h-8 w-8 shrink-0 rounded bg-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-500">
+                                {member.name
+                                  ? member.name.split(/\s+/).map((s) => s[0]).join('').slice(0, 2).toUpperCase()
+                                  : '—'}
+                              </div>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-sm font-medium text-black cursor-default underline decoration-dotted decoration-gray-400 underline-offset-1">
+                                    {member.name || '—'}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-xs border border-gray-200 bg-white px-3 py-2 text-xs text-black">
+                                  <div className="space-y-1">
+                                    <p><span className="text-gray-500">Name:</span> {member.name || '—'}</p>
+                                    <p><span className="text-gray-500">Title:</span> {member.position || '—'}</p>
+                                    <p><span className="text-gray-500">Phone:</span> {member.phone || '—'}</p>
+                                    <p><span className="text-gray-500">Email:</span> {member.email || '—'}</p>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
                               {teamMembers.length > 1 && (
                                 <button
                                   type="button"
                                   onClick={() => removeTeamMember(member.id)}
-                                  className="text-gray-500 hover:text-black shrink-0"
+                                  className="text-gray-500 hover:text-black shrink-0 ml-auto"
+                                  aria-label="Remove"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               )}
                             </div>
-                            <div className="flex gap-2 flex-wrap">
-                              <Input
-                                value={member.phone}
-                                onChange={(e) => updateTeamMember(member.id, 'phone', e.target.value)}
-                                placeholder="Phone"
-                                className="border-gray-300 text-xs h-7 w-32"
-                              />
-                              <Input
-                                type="email"
-                                value={member.email}
-                                onChange={(e) => updateTeamMember(member.id, 'email', e.target.value)}
-                                placeholder="Email"
-                                className="border-gray-300 text-xs h-7 flex-1 min-w-[160px]"
-                              />
-                            </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2 mb-0.5">
                                 <label className="text-xs text-gray-600">Bio (80–150 words)</label>
                                 {member.isPartner && (
@@ -1286,9 +1281,9 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </TooltipProvider>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
