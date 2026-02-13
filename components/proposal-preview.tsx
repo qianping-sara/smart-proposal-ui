@@ -9,6 +9,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { DynamicTableBuilder } from '@/components/dynamic-table-builder'
@@ -83,6 +92,131 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     Array<{ natureOfService: string; statutoryAudit: boolean; valueAdd: boolean }>
   >(defaultVasPart3)
   const [editingNatureCell, setEditingNatureCell] = useState<string | null>(null)
+
+  type TeamMember = {
+    id: string
+    name: string
+    position: string
+    phone: string
+    email: string
+    bio: string
+    isPartner?: boolean
+  }
+  const defaultTeamMembers: TeamMember[] = [
+    {
+      id: 'partner-1',
+      name: 'Daniel Dalla',
+      position: 'Audit Engagement Partner',
+      phone: '+61 2 8999 1199',
+      email: 'Daniel.Dalla@incorpadvisory.au',
+      bio: 'Daniel has over 20 years of experience in Audit, Assurance and Corporate Advisory. He spent 15 years at Deloitte and HLB Mann Judd with broad client and industry exposure. He specialises in financial services, fund management, retail, technology, private equity, mining, exploration, building and construction, and has responsibility for ASX listed entities. Daniel was appointed Partner at In.Corp in November 2016.',
+      isPartner: true,
+    },
+    {
+      id: 'partner-2',
+      name: 'Graham Webb',
+      position: 'Audit Quality Review Partner',
+      phone: '+61 2 8999 1199',
+      email: 'Graham.Webb@incorpadvisory.au',
+      bio: 'Graham has over 20 years of experience as a registered company auditor. He was a partner at Hall Chadwick for 13 years before joining In.Corp in 2022. His experience includes ASX listed entities, private and public companies, AFSL entities and not-for-profit entities across financial services, retail, manufacturing, technology, mining and exploration. He is known for his professionalism and communication skills.',
+      isPartner: true,
+    },
+  ]
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(defaultTeamMembers)
+  const [teamBioImproveId, setTeamBioImproveId] = useState<string | null>(null)
+  const [teamBioAiResult, setTeamBioAiResult] = useState<string | null>(null)
+  const [teamBioAiPrompt, setTeamBioAiPrompt] = useState('')
+
+  type TeamLibraryItem = Omit<TeamMember, 'id'>
+  const teamLibrary: TeamLibraryItem[] = [
+    {
+      name: 'Daniel Dalla',
+      position: 'Audit Engagement Partner',
+      phone: '+61 2 8999 1199',
+      email: 'Daniel.Dalla@incorpadvisory.au',
+      bio: 'Daniel has over 20 years of experience in Audit, Assurance and Corporate Advisory. He spent 15 years at Deloitte and HLB Mann Judd with broad client and industry exposure. He specialises in financial services, fund management, retail, technology, private equity, mining, exploration, building and construction, and has responsibility for ASX listed entities. Daniel was appointed Partner at In.Corp in November 2016.',
+      isPartner: true,
+    },
+    {
+      name: 'Graham Webb',
+      position: 'Audit Quality Review Partner',
+      phone: '+61 2 8999 1199',
+      email: 'Graham.Webb@incorpadvisory.au',
+      bio: 'Graham has over 20 years of experience as a registered company auditor. He was a partner at Hall Chadwick for 13 years before joining In.Corp in 2022. His experience includes ASX listed entities, private and public companies, AFSL entities and not-for-profit entities across financial services, retail, manufacturing, technology, mining and exploration. He is known for his professionalism and communication skills.',
+      isPartner: true,
+    },
+    {
+      name: 'James Saab',
+      position: 'Manager, Assurance',
+      phone: '+61 2 8999 1199',
+      email: 'James.Saab@incorpadvisory.au',
+      bio: 'James is a Chartered Accountant with a Bachelor of Business and Bachelor of Laws from the University of Technology Sydney. He has over 6 years with the In.Corp team and experience across financial and brokerage services, transport and logistics, ASX listed clients, mining and exploration, technology and communications, private education and not-for-profits. He leads In.Corp\'s real estate trust audit portfolio.',
+      isPartner: false,
+    },
+    {
+      name: 'Stella Wongso',
+      position: 'Manager, Assurance',
+      phone: '+61 2 8999 1199',
+      email: 'Stella.Wongso@incorpadvisory.au',
+      bio: 'Stella studied in Bandung, Indonesia and holds a Bachelor of Commerce from the University of New South Wales. She is a Chartered Accountant and joined In.Corp in 2019. Her experience includes financial services, health and beauty, retailing, technology, building and construction, transport and logistics, and ASX listed mining and exploration companies. She has prior volunteer work and experience in restaurant and printing businesses.',
+      isPartner: false,
+    },
+  ]
+
+  const addTeamMember = () => {
+    setTeamMembers((prev) => [
+      ...prev,
+      {
+        id: `member-${Date.now()}`,
+        name: '',
+        position: '',
+        phone: '',
+        email: '',
+        bio: '',
+        isPartner: false,
+      },
+    ])
+  }
+  const addTeamMemberFromLibrary = (item: TeamLibraryItem) => {
+    setTeamMembers((prev) => [
+      ...prev,
+      {
+        ...item,
+        id: `member-${Date.now()}`,
+      },
+    ])
+  }
+  const removeTeamMember = (id: string) => {
+    setTeamMembers((prev) => prev.filter((m) => m.id !== id))
+    if (teamBioImproveId === id) {
+      setTeamBioImproveId(null)
+      setTeamBioAiResult(null)
+      setTeamBioAiPrompt('')
+    }
+  }
+  const updateTeamMember = (id: string, field: keyof TeamMember, value: string | boolean) => {
+    setTeamMembers((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, [field]: value } : m))
+    )
+  }
+  const createTeamBioSuggestion = () => {
+    setTeamBioAiResult(
+      'Our team member brings extensive experience and a commitment to delivering high-quality client service. They work closely with clients to understand their needs and provide tailored solutions.'
+    )
+  }
+  const replaceTeamBioWithSuggestion = (id: string) => {
+    if (teamBioAiResult) {
+      updateTeamMember(id, 'bio', teamBioAiResult)
+      setTeamBioAiResult(null)
+      setTeamBioAiPrompt('')
+      setTeamBioImproveId(null)
+    }
+  }
+  const closeTeamBioImprove = () => {
+    setTeamBioImproveId(null)
+    setTeamBioAiResult(null)
+    setTeamBioAiPrompt('')
+  }
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
@@ -799,11 +933,186 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
             <div className="group rounded-lg border border-gray-200 bg-white">
               <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
                 <div className="flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      !openSections.ourTeam && '-rotate-90'
+                    )}
+                  />
                   <span className="text-sm font-medium text-black">Our team</span>
                 </div>
                 <span className="text-xs text-gray-500">Not Ready</span>
               </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-gray-100 px-4 py-4">
+                  <p className="text-xs text-gray-600 mb-3">
+                    Maintain portrait, name, position, contact and bio (80–150 words). Partners support AI Improve for bio.
+                  </p>
+                  <div className="space-y-4">
+                    {teamMembers.map((member) => (
+                      <div
+                        key={member.id}
+                        className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className="h-8 w-8 shrink-0 rounded bg-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-500">
+                            {member.name
+                              ? member.name.split(/\s+/).map((s) => s[0]).join('').slice(0, 2).toUpperCase()
+                              : '—'}
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <div className="flex gap-2 items-center flex-wrap">
+                              <Input
+                                value={member.name}
+                                onChange={(e) => updateTeamMember(member.id, 'name', e.target.value)}
+                                placeholder="Name"
+                                className="border-gray-300 text-xs h-7 w-36"
+                              />
+                              <Input
+                                value={member.position}
+                                onChange={(e) => updateTeamMember(member.id, 'position', e.target.value)}
+                                placeholder="Position"
+                                className="border-gray-300 text-xs h-7 flex-1 min-w-[120px]"
+                              />
+                              {teamMembers.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeTeamMember(member.id)}
+                                  className="text-gray-500 hover:text-black shrink-0"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex gap-2 flex-wrap">
+                              <Input
+                                value={member.phone}
+                                onChange={(e) => updateTeamMember(member.id, 'phone', e.target.value)}
+                                placeholder="Phone"
+                                className="border-gray-300 text-xs h-7 w-32"
+                              />
+                              <Input
+                                type="email"
+                                value={member.email}
+                                onChange={(e) => updateTeamMember(member.id, 'email', e.target.value)}
+                                placeholder="Email"
+                                className="border-gray-300 text-xs h-7 flex-1 min-w-[160px]"
+                              />
+                            </div>
+                            <div>
+                              <div className="flex items-center justify-between gap-2 mb-0.5">
+                                <label className="text-xs text-gray-600">Bio (80–150 words)</label>
+                                {member.isPartner && (
+                                  <button
+                                    type="button"
+                                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-black"
+                                    onClick={() => {
+                                      setTeamBioImproveId(member.id)
+                                      setTeamBioAiResult(null)
+                                      setTeamBioAiPrompt('')
+                                    }}
+                                  >
+                                    <Sparkles className="h-3 w-3" />
+                                    AI Improve
+                                  </button>
+                                )}
+                              </div>
+                              <Textarea
+                                value={member.bio}
+                                onChange={(e) => updateTeamMember(member.id, 'bio', e.target.value)}
+                                rows={3}
+                                className="min-h-0 resize-none border border-gray-300 text-xs"
+                                placeholder="80–150 words"
+                              />
+                              {teamBioImproveId === member.id && (
+                                <div className="mt-2 rounded border border-gray-200 bg-gray-50 px-2 py-2">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs font-medium text-black">AI Improve</span>
+                                    <button type="button" className="text-xs text-gray-500 hover:text-gray-700" onClick={closeTeamBioImprove}>
+                                      Close
+                                    </button>
+                                  </div>
+                                  {teamBioAiResult ? (
+                                    <div className="space-y-1.5">
+                                      <p className="text-xs text-gray-900 whitespace-pre-wrap line-clamp-4">{teamBioAiResult}</p>
+                                      <Button size="sm" className="bg-gray-600 hover:bg-gray-700 text-white text-xs h-6" onClick={() => replaceTeamBioWithSuggestion(member.id)}>
+                                        Replace
+                                      </Button>
+                                      <div className="flex gap-2">
+                                        <Input
+                                          value={teamBioAiPrompt}
+                                          onChange={(e) => setTeamBioAiPrompt(e.target.value)}
+                                          placeholder="e.g. shorten to 80 words"
+                                          className="flex-1 border-gray-300 text-xs h-6"
+                                        />
+                                        <Button size="sm" className="shrink-0 bg-gray-600 hover:bg-gray-700 text-white text-xs h-6" onClick={createTeamBioSuggestion}>
+                                          Update
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex gap-2">
+                                      <Input
+                                        value={teamBioAiPrompt}
+                                        onChange={(e) => setTeamBioAiPrompt(e.target.value)}
+                                        placeholder="e.g. shorten to 80 words"
+                                        className="flex-1 border-gray-300 text-xs h-6"
+                                      />
+                                      <Button size="sm" className="shrink-0 bg-gray-600 hover:bg-gray-700 text-white text-xs h-6" onClick={createTeamBioSuggestion}>
+                                        Create
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 border-gray-300 text-black hover:bg-gray-50 text-xs h-7"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add team member
+                        <ChevronDown className="h-3 w-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="min-w-[200px]">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="text-xs">
+                          From library
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          {teamLibrary.map((item, idx) => (
+                            <DropdownMenuItem
+                              key={idx}
+                              className="text-xs"
+                              onSelect={() => addTeamMemberFromLibrary(item)}
+                            >
+                              <span className="truncate" title={`${item.name} – ${item.position}`}>
+                                {item.name} · {item.position}
+                              </span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      <DropdownMenuItem
+                        className="text-xs"
+                        onSelect={addTeamMember}
+                      >
+                        Add blank (free fill-in)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CollapsibleContent>
             </div>
           </Collapsible>
 
