@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronRight, Edit2, Sparkles, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Collapsible,
   CollapsibleContent,
@@ -31,6 +32,14 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
     invoice: false,
   })
   const [isClientEditing, setIsClientEditing] = useState(false)
+  const [executiveEditMode, setExecutiveEditMode] = useState(false)
+  const [executiveAiImproveOpen, setExecutiveAiImproveOpen] = useState(false)
+  const [executiveAiResult, setExecutiveAiResult] = useState<string | null>(null)
+  const [executiveAiPrompt, setExecutiveAiPrompt] = useState('')
+  const defaultExecutiveText =
+    'We are pleased to be presenting our proposal to you.\n\nOur team of experienced professionals work very closely with clients on various corporate, accounting, compliance and governance matter and identify the unique requirements of individual organizations. As a strong believer of long-term partnerships, we are committed to providing tailored solutions that not only meet our clients\' objectives, but also giving them a peace of mind to focus on their core businesses.\n\nThe following pages outline our services tailor made to you and we trust that our proposal meets your expectations. We are excited to work with you and look forward to a long and mutually beneficial working relationship with you and the Company.'
+  const [executiveSummaryText, setExecutiveSummaryText] = useState(defaultExecutiveText)
+  const [executiveSummarySaved, setExecutiveSummarySaved] = useState(defaultExecutiveText)
   const [clientForm, setClientForm] = useState({
     contactName: dealInfo?.contactPerson ?? 'abc',
     contactEmail: dealInfo?.contactEmail ?? 'abc@abc.com',
@@ -83,6 +92,50 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
       )
     }
   }, [dealInfo?.contactPerson, dealInfo?.contactEmail, isClientEditing])
+
+  const startExecutiveEdit = () => {
+    setOpenSections((prev) => ({ ...prev, executive: true }))
+    setExecutiveSummarySaved(executiveSummaryText)
+    setExecutiveEditMode(true)
+    setExecutiveAiImproveOpen(false)
+    setExecutiveAiResult(null)
+  }
+  const saveExecutiveEdit = () => {
+    setExecutiveSummarySaved(executiveSummaryText)
+    setExecutiveEditMode(false)
+  }
+  const cancelExecutiveEdit = () => {
+    setExecutiveSummaryText(executiveSummarySaved)
+    setExecutiveEditMode(false)
+  }
+  const startExecutiveAiImprove = () => {
+    setOpenSections((prev) => ({ ...prev, executive: true }))
+    setExecutiveAiImproveOpen(true)
+    setExecutiveEditMode(false)
+  }
+  const createAiSuggestion = () => {
+    setExecutiveAiResult(
+      'We are pleased to present our proposal, offering tailored solutions and a trusted partnership to support your business goals.'
+    )
+  }
+  const replaceWithAiSuggestion = () => {
+    if (executiveAiResult) {
+      setExecutiveSummaryText(executiveAiResult)
+      setExecutiveAiResult(null)
+      setExecutiveAiPrompt('')
+      setExecutiveAiImproveOpen(false)
+    }
+  }
+  const updateAiSuggestion = () => {
+    setExecutiveAiResult(
+      'We are pleased to present our proposal, offering tailored solutions and a trusted partnership to support your business goals.'
+    )
+  }
+  const closeAiImprove = () => {
+    setExecutiveAiImproveOpen(false)
+    setExecutiveAiResult(null)
+    setExecutiveAiPrompt('')
+  }
 
   return (
     <div className="flex h-full flex-col bg-gray-50">
@@ -225,51 +278,138 @@ export function ProposalPreview({ dealInfo }: ProposalPreviewProps) {
             </div>
           </Collapsible>
 
-          {/* Executive Summary */}
-          <Collapsible open={openSections.executive} onOpenChange={() => toggleSection('executive')}>
-            <div className="group rounded-lg border border-gray-200 bg-white">
-              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
-                <div className="flex items-center gap-2">
-                  <ChevronDown
-                    className={cn(
-                      'h-4 w-4 transition-transform',
-                      !openSections.executive && '-rotate-90'
-                    )}
-                  />
-                  <span className="text-sm font-medium text-black">Executive Summary</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="flex h-8 items-center gap-1 px-2 text-sm text-gray-600 hover:text-black"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Sparkles className="h-3 w-3" />
-                    Improve
-                  </div>
-                  <div
-                    className="flex h-8 items-center gap-1 px-2 text-sm text-gray-600 hover:text-black"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Edit2 className="h-3 w-3" />
-                    Edit
-                  </div>
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="border-t border-gray-100 px-4 py-3">
-                  <div className="space-y-2 text-sm leading-relaxed text-gray-900">
-                    <p>We are pleased to be presenting our proposal to you.</p>
-                    <p>
-                      Our team of experienced professionals work very closely with clients on various corporate, accounting, compliance and governance matter and identify the unique requirements of individual organizations. As a strong believer of long-term partnerships, we are committed to providing tailored solutions that not only meet our clients' objectives, but also giving them a peace of mind to focus on their core businesses.
-                    </p>
-                    <p>
-                      The following pages outline our services tailor made to you and we trust that our proposal meets your expectations. We are excited to work with you and look forward to a long and mutually beneficial working relationship with you and the Company.
-                    </p>
-                  </div>
-                </div>
-              </CollapsibleContent>
+          {/* Executive Summary - no Radix Collapsible to avoid swallowing clicks */}
+          <div className="group rounded-lg border border-gray-200 bg-white">
+            <div className="flex h-12 w-full shrink-0 items-center justify-between px-4 hover:bg-gray-50">
+              <button
+                type="button"
+                className="flex flex-1 items-center gap-2 text-left outline-none"
+                onClick={() => toggleSection('executive')}
+              >
+                <ChevronDown
+                  className={cn(
+                    'h-4 w-4 transition-transform',
+                    !openSections.executive && '-rotate-90'
+                  )}
+                />
+                <span className="text-sm font-medium text-black">Executive Summary</span>
+              </button>
+              <div className="relative z-10 flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  className="flex h-8 cursor-pointer items-center gap-1 rounded px-2 text-sm font-normal text-gray-600 hover:bg-gray-100 hover:text-black"
+                  onClick={startExecutiveAiImprove}
+                >
+                  <Sparkles className="h-3 w-3" />
+                  Improve
+                </button>
+                <button
+                  type="button"
+                  className="flex h-8 cursor-pointer items-center gap-1 rounded px-2 text-sm font-normal text-gray-600 hover:bg-gray-100 hover:text-black"
+                  onClick={startExecutiveEdit}
+                >
+                  <Edit2 className="h-3 w-3" />
+                  Edit
+                </button>
+              </div>
             </div>
-          </Collapsible>
+            {openSections.executive && (
+              <div className="border-t border-gray-100 px-4 py-3">
+                  {executiveEditMode ? (
+                    <div className="space-y-4">
+                      <Textarea
+                        value={executiveSummaryText}
+                        onChange={(e) => setExecutiveSummaryText(e.target.value)}
+                        className="min-h-[160px] resize-y border-gray-300 text-sm"
+                        placeholder="Enter executive summary..."
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-gray-300 text-black hover:bg-gray-50"
+                          onClick={cancelExecutiveEdit}
+                        >
+                          Cancel
+                        </Button>
+                        <Button size="sm" className="bg-gray-600 hover:bg-gray-700 text-white" onClick={saveExecutiveEdit}>
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 text-sm leading-relaxed text-gray-900">
+                      {executiveSummaryText.split(/\n\n+/).map((para, i) => (
+                        <p key={i}>{para}</p>
+                      ))}
+                    </div>
+                  )}
+                  {executiveAiImproveOpen && (
+                    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-gray-600" />
+                          <span className="text-sm font-medium text-black">AI Improve</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                          onClick={closeAiImprove}
+                        >
+                          Close
+                        </button>
+                      </div>
+                      {executiveAiResult ? (
+                        <div className="space-y-3">
+                          <p className="text-sm font-medium leading-relaxed text-gray-900">
+                            {executiveAiResult}
+                          </p>
+                          <Button
+                            size="sm"
+                            className="bg-gray-600 hover:bg-gray-700 text-white"
+                            onClick={replaceWithAiSuggestion}
+                          >
+                            Replace
+                          </Button>
+                          <p className="text-xs text-gray-500">Not satisfied? Update your input and try again.</p>
+                          <div className="flex gap-2">
+                            <Input
+                              value={executiveAiPrompt}
+                              onChange={(e) => setExecutiveAiPrompt(e.target.value)}
+                              placeholder="refactor to shorter said 100 chars"
+                              className="flex-1 border-gray-300 text-sm placeholder:text-gray-400"
+                            />
+                            <Button
+                              size="sm"
+                              className="shrink-0 bg-gray-600 hover:bg-gray-700 text-white"
+                              onClick={updateAiSuggestion}
+                            >
+                              Update
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input
+                            value={executiveAiPrompt}
+                            onChange={(e) => setExecutiveAiPrompt(e.target.value)}
+                            placeholder="refactor to shorter said 100 chars"
+                            className="flex-1 border-gray-300 text-sm placeholder:text-gray-400"
+                          />
+                          <Button
+                            size="sm"
+                            className="shrink-0 bg-gray-600 hover:bg-gray-700 text-white"
+                            onClick={createAiSuggestion}
+                          >
+                            Create
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+            )}
+          </div>
 
           {/* Scope of Services */}
           <Collapsible open={openSections.scope} onOpenChange={() => toggleSection('scope')}>
