@@ -1179,8 +1179,8 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                           key={member.id}
                           className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
                         >
-                          <div className="flex items-start gap-3">
-                            <div className="shrink-0 flex items-center gap-2 w-36">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
                               <div className="h-8 w-8 shrink-0 rounded bg-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-500">
                                 {member.name
                                   ? member.name.split(/\s+/).map((s) => s[0]).join('').slice(0, 2).toUpperCase()
@@ -1212,7 +1212,7 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                                 </button>
                               )}
                             </div>
-                            <div className="min-w-0 flex-1">
+                            <div>
                               <div className="flex items-center justify-between gap-2 mb-0.5">
                                 <label className="text-xs text-gray-600">Bio (80–150 words)</label>
                                 {member.isPartner && (
@@ -1316,13 +1316,7 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                           ))}
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
-                      <DropdownMenuItem
-                        className="text-xs"
-                        onSelect={addTeamMember}
-                      >
-                        Add blank (free fill-in)
-                      </DropdownMenuItem>
-                      </DropdownMenuContent>
+                    </DropdownMenuContent>
                   </DropdownMenu>
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <label className="mb-2 block text-sm font-normal text-black">
