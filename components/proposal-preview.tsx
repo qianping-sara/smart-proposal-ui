@@ -774,10 +774,10 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                 {!vasReady && <span className="text-xs text-gray-500">Not Ready</span>}
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="border-t border-gray-100 px-4 py-4 space-y-5">
-                  {/* Part 1 */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-black mb-2">Value added at no charge</h4>
+                <div className="border-t border-gray-100 px-4 py-4 space-y-4">
+                  {/* Part 1 — sub-group */}
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-3">
+                    <h4 className="text-sm font-semibold text-black">Value added at no charge</h4>
                     <div className="mb-3">
                       <label className="mb-1.5 block text-xs font-normal text-gray-600">Description (Optional)</label>
                       <Textarea
@@ -881,9 +881,9 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                     </Button>
                   </div>
 
-                  {/* Part 2 */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-black mb-2">FEE PROPOSAL</h4>
+                  {/* Part 2 — sub-group */}
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-3">
+                    <h4 className="text-sm font-semibold text-black">FEE PROPOSAL</h4>
                     <div className="mb-3">
                       <label className="mb-1.5 block text-xs font-normal text-gray-600">Description (Optional)</label>
                       <Textarea
@@ -1008,9 +1008,9 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                     </div>
                   </div>
 
-                  {/* Part 3 */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-black mb-2">Going above and beyond</h4>
+                  {/* Part 3 — sub-group */}
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-3">
+                    <h4 className="text-sm font-semibold text-black">Going above and beyond</h4>
                     <div className="mb-3">
                       <label className="mb-1.5 block text-xs font-normal text-gray-600">Description (Optional)</label>
                       <Textarea
