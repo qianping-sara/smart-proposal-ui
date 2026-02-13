@@ -102,6 +102,19 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
   >(defaultVasPart3)
   const [editingNatureCell, setEditingNatureCell] = useState<string | null>(null)
 
+  const [vasPart1Description, setVasPart1Description] = useState(
+    'Our fees are highly competitive without comprising quality while delivering value add to your business.\n\nWe have the resources and experience in deadline management to ensure that we complete our assignments on time and delivering it to our clients at a quality that they would expect. This is primarily attributable to our approach of ensuring partner participation and oversight throughout the process.\n\nIn order to provide a smooth transition, we propose to provide the following at no charge as a gesture of goodwill in demonstrating our commitment to building a long-term mutually rewarding business relationship with Viridis:'
+  )
+  const [vasPart2Description, setVasPart2Description] = useState(
+    'We are committed to providing you with a high-quality service in a cost effective and transparent manner. To provide you with certainty on your future costs we have provided our fee estimate for the requested periods as follows:'
+  )
+  const [vasPart2Footnotes, setVasPart2Footnotes] = useState(
+    '1. The above amount is exclusive of GST and disbursements.\n\n2. Our fee for the professional services assume no significant changes to the operations of the business from that advised up to the date of this proposal and allows for time costs to perform audit procedures and consideration of accounting issues that may arise. If there is any indication that our fees may exceed the amount detailed, we will discuss the cause and potential additional fees with you to determine actions to minimise their impact.'
+  )
+  const [vasPart3Description, setVasPart3Description] = useState(
+    'The following table demonstrates what services normally comprise a statutory audit and value-added services that In.Corp will provide as part of our ongoing commitment to the directors and management of Viridis.'
+  )
+
   type TeamMember = {
     id: string
     name: string
@@ -759,6 +772,16 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                   {/* Part 1 */}
                   <div>
                     <h4 className="text-sm font-semibold text-black mb-2">Value added at no charge</h4>
+                    <div className="mb-3">
+                      <label className="mb-1.5 block text-xs font-normal text-gray-600">Description (Optional)</label>
+                      <Textarea
+                        rows={4}
+                        value={vasPart1Description}
+                        onChange={(e) => setVasPart1Description(e.target.value)}
+                        placeholder="Description..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none resize-y min-h-0"
+                      />
+                    </div>
                     <div className="overflow-x-auto rounded border border-gray-200">
                       <table className="w-full text-xs">
                         <thead>
@@ -855,6 +878,16 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                   {/* Part 2 */}
                   <div>
                     <h4 className="text-sm font-semibold text-black mb-2">FEE PROPOSAL</h4>
+                    <div className="mb-3">
+                      <label className="mb-1.5 block text-xs font-normal text-gray-600">Description (Optional)</label>
+                      <Textarea
+                        rows={2}
+                        value={vasPart2Description}
+                        onChange={(e) => setVasPart2Description(e.target.value)}
+                        placeholder="Description..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none resize-y min-h-0"
+                      />
+                    </div>
                     <div className="overflow-x-auto rounded border border-gray-200">
                       <table className="w-full text-xs">
                         <thead>
@@ -957,11 +990,31 @@ export function ProposalPreview({ dealInfo, customServices, onCustomServicesChan
                       <Plus className="h-3 w-3 mr-1" />
                       Add row
                     </Button>
+                    <div className="mt-3">
+                      <label className="mb-1.5 block text-xs font-normal text-gray-600">Footnotes (Optional)</label>
+                      <Textarea
+                        rows={4}
+                        value={vasPart2Footnotes}
+                        onChange={(e) => setVasPart2Footnotes(e.target.value)}
+                        placeholder="Footnotes..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none resize-y min-h-0"
+                      />
+                    </div>
                   </div>
 
                   {/* Part 3 */}
                   <div>
                     <h4 className="text-sm font-semibold text-black mb-2">Going above and beyond</h4>
+                    <div className="mb-3">
+                      <label className="mb-1.5 block text-xs font-normal text-gray-600">Description (Optional)</label>
+                      <Textarea
+                        rows={2}
+                        value={vasPart3Description}
+                        onChange={(e) => setVasPart3Description(e.target.value)}
+                        placeholder="Description..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none resize-y min-h-0"
+                      />
+                    </div>
                     <div className="overflow-x-auto rounded border border-gray-200">
                       <table className="w-full text-xs">
                         <thead>
