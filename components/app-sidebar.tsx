@@ -129,7 +129,7 @@ export function AppSidebar({
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="min-w-[10rem]">
                       <DropdownMenuItem onClick={() => onUnmarkAsTemplate(chat)}>Unmark as Template</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onCloseChat(chat, 'template')}>Close</DropdownMenuItem>
                     </DropdownMenuContent>
@@ -171,7 +171,7 @@ export function AppSidebar({
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="min-w-[10rem]">
                       <DropdownMenuItem onClick={() => onMarkAsTemplate(chat)}>Mark as Template</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onCloseChat(chat, 'open')}>Close</DropdownMenuItem>
                     </DropdownMenuContent>
