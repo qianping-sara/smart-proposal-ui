@@ -10,24 +10,40 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface AppSidebarProps {
   openChats: string[]
+  templateChats: string[]
   closedChats: string[]
   onNewProposal: () => void
   onSelectChat: (chatName: string) => void
+  onMarkAsTemplate: (chatName: string) => void
+  onUnmarkAsTemplate: (chatName: string) => void
+  onCloseChat: (chatName: string, fromSection: 'open' | 'template') => void
   currentChat: string | null
 }
 
 export function AppSidebar({
   openChats,
+  templateChats,
   closedChats,
   onNewProposal,
   onSelectChat,
+  onMarkAsTemplate,
+  onUnmarkAsTemplate,
+  onCloseChat,
   currentChat,
 }: AppSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isTemplateExpanded, setIsTemplateExpanded] = useState(true)
   const [isOpenExpanded, setIsOpenExpanded] = useState(true)
+  const [isClosedExpanded, setIsClosedExpanded] = useState(false)
 
   if (isCollapsed) {
     return (
@@ -82,6 +98,48 @@ export function AppSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        <Collapsible open={isTemplateExpanded} onOpenChange={setIsTemplateExpanded}>
+          <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs text-gray-600 hover:bg-gray-100">
+            <div className="flex items-center gap-1">
+              <ChevronDown className={cn("h-3 w-3 transition-transform", !isTemplateExpanded && "-rotate-90")} />
+              <span>Template</span>
+            </div>
+            <span className="text-gray-400">{templateChats.length}</span>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="flex flex-col">
+              {templateChats.map((chat, index) => (
+                <div
+                  key={`t-${index}`}
+                  className={cn(
+                    "group flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-100",
+                    currentChat === chat && "bg-gray-200"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onSelectChat(chat)}
+                    className="flex-1 min-w-0 truncate text-left"
+                  >
+                    {chat}
+                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-gray-500 hover:text-black" onClick={(e) => e.stopPropagation()}>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onUnmarkAsTemplate(chat)}>Unmark as Template</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onCloseChat(chat, 'template')}>Close</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
         <Collapsible open={isOpenExpanded} onOpenChange={setIsOpenExpanded}>
           <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs text-gray-600 hover:bg-gray-100">
             <div className="flex items-center gap-1">
@@ -93,31 +151,61 @@ export function AppSidebar({
           <CollapsibleContent>
             <div className="flex flex-col">
               {openChats.map((chat, index) => (
-                <button
-                  key={index}
-                  onClick={() => onSelectChat(chat)}
+                <div
+                  key={`o-${index}`}
                   className={cn(
                     "group flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-100",
                     currentChat === chat && "bg-gray-200"
                   )}
                 >
-                  <span className="truncate">{chat}</span>
-                  {currentChat === chat && (
-                    <MoreHorizontal className="h-4 w-4 text-gray-600" />
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectChat(chat)}
+                    className="flex-1 min-w-0 truncate text-left"
+                  >
+                    {chat}
+                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-gray-500 hover:text-black" onClick={(e) => e.stopPropagation()}>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onMarkAsTemplate(chat)}>Mark as Template</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onCloseChat(chat, 'open')}>Close</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ))}
             </div>
           </CollapsibleContent>
         </Collapsible>
 
-        <Collapsible>
+        <Collapsible open={isClosedExpanded} onOpenChange={setIsClosedExpanded}>
           <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs text-gray-600 hover:bg-gray-100">
             <div className="flex items-center gap-1">
-              <ChevronRight className="h-3 w-3" />
+              <ChevronDown className={cn("h-3 w-3 transition-transform", !isClosedExpanded && "-rotate-90")} />
               <span>Closed</span>
             </div>
+            <span className="text-gray-400">{closedChats.length}</span>
           </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="flex flex-col">
+              {closedChats.map((chat, index) => (
+                <button
+                  key={`c-${index}`}
+                  onClick={() => onSelectChat(chat)}
+                  className={cn(
+                    "flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-100",
+                    currentChat === chat && "bg-gray-200"
+                  )}
+                >
+                  <span className="truncate">{chat}</span>
+                </button>
+              ))}
+            </div>
+          </CollapsibleContent>
         </Collapsible>
       </div>
 

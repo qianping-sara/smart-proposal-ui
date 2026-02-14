@@ -180,6 +180,7 @@ export default function Page() {
   const [currentView, setCurrentView] = useState<'new' | 'chat'>('new')
   const [currentChat, setCurrentChat] = useState<string | null>(null)
   const [openChats, setOpenChats] = useState<string[]>(() => [...currentUser.chatList])
+  const [templateChats, setTemplateChats] = useState<string[]>([])
   const [closedChats, setClosedChats] = useState<string[]>([])
   const [dealInfoByChat, setDealInfoByChat] = useState<Record<string, DealInfo>>(() =>
     buildInitialDealInfoByChat(currentUser.chatList)
@@ -195,6 +196,7 @@ export default function Page() {
     setCurrentUserId(userId)
     const user = getUser(userId)
     setOpenChats([...user.chatList])
+    setTemplateChats([])
     setClosedChats([])
     setCurrentChat(null)
     setCurrentView('new')
@@ -254,6 +256,27 @@ export default function Page() {
     setCurrentChat(chatName)
     setCurrentView('chat')
   }
+
+  const handleMarkAsTemplate = useCallback((chatName: string) => {
+    setOpenChats((prev) => prev.filter((c) => c !== chatName))
+    setTemplateChats((prev) => [...prev, chatName])
+  }, [])
+  const handleUnmarkAsTemplate = useCallback((chatName: string) => {
+    setTemplateChats((prev) => prev.filter((c) => c !== chatName))
+    setOpenChats((prev) => [...prev, chatName])
+  }, [])
+  const handleCloseChat = useCallback((chatName: string, fromSection: 'open' | 'template') => {
+    if (fromSection === 'open') {
+      setOpenChats((prev) => prev.filter((c) => c !== chatName))
+    } else {
+      setTemplateChats((prev) => prev.filter((c) => c !== chatName))
+    }
+    setClosedChats((prev) => [...prev, chatName])
+    if (currentChat === chatName) {
+      setCurrentChat(null)
+      setCurrentView('new')
+    }
+  }, [currentChat])
 
   const handleSendMessage = useCallback((chatName: string, text: string) => {
     if (!text.trim()) return
@@ -471,9 +494,13 @@ export default function Page() {
           <>
             <AppSidebar
               openChats={openChats}
+              templateChats={templateChats}
               closedChats={closedChats}
               onNewProposal={handleNewProposal}
               onSelectChat={handleSelectChat}
+              onMarkAsTemplate={handleMarkAsTemplate}
+              onUnmarkAsTemplate={handleUnmarkAsTemplate}
+              onCloseChat={handleCloseChat}
               currentChat={currentChat}
             />
             <NewProposalForm currentUser={currentUser} onStart={handleStartProposal} />
@@ -482,9 +509,13 @@ export default function Page() {
           <>
             <AppSidebar
               openChats={openChats}
+              templateChats={templateChats}
               closedChats={closedChats}
               onNewProposal={handleNewProposal}
               onSelectChat={handleSelectChat}
+              onMarkAsTemplate={handleMarkAsTemplate}
+              onUnmarkAsTemplate={handleUnmarkAsTemplate}
+              onCloseChat={handleCloseChat}
               currentChat={currentChat}
             />
             <ChatInterface
