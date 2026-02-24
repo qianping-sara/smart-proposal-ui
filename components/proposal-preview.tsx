@@ -1496,6 +1496,8 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                         }
                       }}
                       firstRowIsHeader
+                      label="Table"
+                      removable={false}
                       customAddContent={
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

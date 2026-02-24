@@ -16,11 +16,25 @@ interface DynamicTableBuilderProps {
   firstRowIsHeader?: boolean
   /** When provided, render this instead of the default "Add Row" button below the table */
   customAddContent?: React.ReactNode
+  /** Optional label text shown above the table; defaults to "Table (Optional)" */
+  label?: string
+  /** When false, hides the Remove Table action even when table has rows */
+  removable?: boolean
   /** Optional callback to add extra classes per row (e.g. bold title rows) */
   getRowClassName?: (rowIndex: number) => string | undefined
 }
 
-export function DynamicTableBuilder({ onTableCreate, value, onChange, initialData = [], firstRowIsHeader, customAddContent, getRowClassName }: DynamicTableBuilderProps) {
+export function DynamicTableBuilder({
+  onTableCreate,
+  value,
+  onChange,
+  initialData = [],
+  firstRowIsHeader,
+  customAddContent,
+  label = 'Table (Optional)',
+  removable = true,
+  getRowClassName,
+}: DynamicTableBuilderProps) {
   const [showSelector, setShowSelector] = useState(false)
   const [selectedRows, setSelectedRows] = useState(0)
   const [selectedCols, setSelectedCols] = useState(0)
@@ -88,8 +102,8 @@ export function DynamicTableBuilder({ onTableCreate, value, onChange, initialDat
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <label className="block text-sm font-normal text-black">Table (Optional)</label>
-        {tableData.length > 0 && (
+        <label className="block text-sm font-normal text-black">{label}</label>
+        {removable && tableData.length > 0 && (
           <button
             onClick={handleRemoveTable}
             className="flex items-center gap-1 text-sm text-gray-600 hover:text-black"
@@ -176,13 +190,15 @@ export function DynamicTableBuilder({ onTableCreate, value, onChange, initialDat
                 </div>
                 {isHeaderRow ? (
                   <div className="w-9 flex-shrink-0" aria-hidden />
-                ) : (
+                ) : removable ? (
                   <button
                     onClick={() => handleRemoveRow(rowIndex)}
                     className="flex flex-shrink-0 items-center justify-center w-9"
                   >
                     <Minus className="h-5 w-5 rounded-full border border-gray-400 text-gray-600 hover:bg-gray-100" />
                   </button>
+                ) : (
+                  <div className="w-9 flex-shrink-0" aria-hidden />
                 )}
               </div>
             )
