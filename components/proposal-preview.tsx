@@ -317,7 +317,32 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
     'With our proven track record, we will manage the audit process with the least possible disruption to your business, ensuring key deadlines are met.\n\nThe table below provides an indication of our anticipated timeline'
   )
   const [timelineFootnotes, setTimelineFootnotes] = useState('')
+  type TimelineRowType = 'title' | 'content'
+  const defaultTimelineRowTypes: TimelineRowType[] = [
+    'title', // header row
+    'title', // Transition
+    'content', // Confirmation of appointment...
+    'content', // Review of opening balances
+    'title', // Year-End Audit
+    'content',
+    'content',
+    'content',
+    'content',
+  ]
   const [timelineTableData, setTimelineTableData] = useState<string[][]>(defaultTimelineTableData)
+  const [timelineRowTypes, setTimelineRowTypes] =
+    useState<TimelineRowType[]>(defaultTimelineRowTypes)
+
+  const addTimelineRow = (type: TimelineRowType) => {
+    setTimelineTableData((prev) => {
+      if (prev.length === 0) return prev
+      return [...prev, Array(prev[0].length).fill('')]
+    })
+    setTimelineRowTypes((prev) => {
+      if (prev.length === 0) return prev
+      return [...prev, type]
+    })
+  }
 
   const [teamBioImproveId, setTeamBioImproveId] = useState<string | null>(null)
   const [teamBioAiResult, setTeamBioAiResult] = useState<string | null>(null)
@@ -1682,7 +1707,43 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                     </div>
                   </div>
                   <div className="mt-4">
-                    <DynamicTableBuilder value={timelineTableData} onChange={setTimelineTableData} firstRowIsHeader />
+                    <DynamicTableBuilder
+                      value={timelineTableData}
+                      onChange={(next) => {
+                        setTimelineTableData(next)
+                        setTimelineRowTypes((prev) => {
+                          if (next.length === 0) return []
+                          return prev.slice(0, next.length)
+                        })
+                      }}
+                      firstRowIsHeader
+                      getRowClassName={(rowIndex) => {
+                        if (rowIndex === 0) return undefined
+                        return timelineRowTypes[rowIndex] === 'title'
+                          ? 'bg-gray-100 font-semibold'
+                          : ''
+                      }}
+                      customAddContent={
+                        <div className="flex gap-4 text-sm">
+                          <button
+                            type="button"
+                            onClick={() => addTimelineRow('title')}
+                            className="flex items-center gap-1 text-gray-900 hover:text-black"
+                          >
+                            <Plus className="h-4 w-4 rounded-full border border-gray-400" />
+                            Add title row
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => addTimelineRow('content')}
+                            className="flex items-center gap-1 text-gray-900 hover:text-black"
+                          >
+                            <Plus className="h-4 w-4 rounded-full border border-gray-400" />
+                            Add content row
+                          </button>
+                        </div>
+                      }
+                    />
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <label className="mb-2 block text-sm font-normal text-black">

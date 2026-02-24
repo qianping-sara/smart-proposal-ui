@@ -16,9 +16,11 @@ interface DynamicTableBuilderProps {
   firstRowIsHeader?: boolean
   /** When provided, render this instead of the default "Add Row" button below the table */
   customAddContent?: React.ReactNode
+  /** Optional callback to add extra classes per row (e.g. bold title rows) */
+  getRowClassName?: (rowIndex: number) => string | undefined
 }
 
-export function DynamicTableBuilder({ onTableCreate, value, onChange, initialData = [], firstRowIsHeader, customAddContent }: DynamicTableBuilderProps) {
+export function DynamicTableBuilder({ onTableCreate, value, onChange, initialData = [], firstRowIsHeader, customAddContent, getRowClassName }: DynamicTableBuilderProps) {
   const [showSelector, setShowSelector] = useState(false)
   const [selectedRows, setSelectedRows] = useState(0)
   const [selectedCols, setSelectedCols] = useState(0)
@@ -153,8 +155,9 @@ export function DynamicTableBuilder({ onTableCreate, value, onChange, initialDat
         <div className="space-y-2">
           {tableData.map((row, rowIndex) => {
             const isHeaderRow = firstRowIsHeader && rowIndex === 0
+            const rowExtraClass = getRowClassName?.(rowIndex)
             return (
-              <div key={rowIndex} className={cn('flex gap-2', isHeaderRow && 'rounded bg-gray-100')}>
+              <div key={rowIndex} className={cn('flex gap-2', isHeaderRow && 'rounded')}>
                 <div className="grid flex-1 min-w-0 gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, 1fr)` }}>
                   {row.map((cell, colIndex) => (
                     <input
@@ -165,7 +168,8 @@ export function DynamicTableBuilder({ onTableCreate, value, onChange, initialDat
                       placeholder="Please enter..."
                       className={cn(
                         'w-full rounded border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none',
-                        isHeaderRow && 'bg-gray-100 font-semibold'
+                        isHeaderRow && 'bg-gray-100 font-semibold',
+                        rowExtraClass
                       )}
                     />
                   ))}
