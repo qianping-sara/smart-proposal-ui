@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/tooltip'
 import type { TemplateId } from '@/lib/users'
 import type { SolutionPackage, SolutionPackageServiceRow } from '@/lib/solution-package'
+import { getExperience, getOurTeam } from '@/lib/chat-dummy-data'
 
 function genId(): string {
   return `sp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -143,6 +144,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
     bio: string
     isPartner?: boolean
   }
+
   const defaultTeamMembers: TeamMember[] = [
     {
       id: 'partner-1',
@@ -163,7 +165,15 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
       isPartner: true,
     },
   ]
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(defaultTeamMembers)
+
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
+    const chatName = dealInfo?.dealName
+    const ourTeam = chatName ? getOurTeam(chatName) : undefined
+    if (ourTeam && ourTeam.length > 0) {
+      return ourTeam.map((m, i) => ({ ...m, id: `dummy-team-${i}` }))
+    }
+    return defaultTeamMembers
+  })
   const [ourTeamTitle, setOurTeamTitle] = useState('OUR CLIENT SERVICE TEAM')
   const [ourTeamDescription, setOurTeamDescription] = useState(
     'Our team has the experience and capability to meet your requirements. Our engagements are directed and conducted by senior qualified professional staff.'
@@ -174,7 +184,14 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
     'We have considerable experience in providing external audits and other professional services to public and private companies across a range of sectors. Representative clients include:'
   )
   const [industryFootnotes, setIndustryFootnotes] = useState('')
-  const [industryCredentials, setIndustryCredentials] = useState<Array<{ id: string; companyName: string; industry?: string }>>([])
+  const [industryCredentials, setIndustryCredentials] = useState<Array<{ id: string; companyName: string; industry?: string }>>(() => {
+    const chatName = dealInfo?.dealName
+    const experience = chatName ? getExperience(chatName) : undefined
+    if (experience && experience.length > 0) {
+      return experience.map((row, i) => ({ id: `dummy-cred-${i}`, companyName: row.companyName }))
+    }
+    return []
+  })
   type IndustryLibraryItem = { industry: string; companyName: string }
   const industryLibrary: IndustryLibraryItem[] = [
     { industry: 'Construction', companyName: 'Deicorp Property Group Pty Ltd' },
@@ -292,10 +309,18 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
   const teamLibrary: TeamLibraryItem[] = [
     {
       name: 'Daniel Dalla',
-      position: 'Audit Engagement Partner',
+      position: 'Engagement Partner, Assurance',
       phone: '+61 2 8999 1199',
-      email: 'Daniel.Dalla@incorpadvisory.au',
-      bio: 'Daniel has over 20 years of experience in Audit, Assurance and Corporate Advisory. He spent 15 years at Deloitte and HLB Mann Judd with broad client and industry exposure. He specialises in financial services, fund management, retail, technology, private equity, mining, exploration, building and construction, and has responsibility for ASX listed entities. Daniel was appointed Partner at In.Corp in November 2016.',
+      email: 'Daniel.Dalla@InCorpadvisory.au',
+      bio: 'Daniel has over 24 years of experience in Audit, Assurance, and Corporate Advisory, with 15 years spent at Deloitte and HLB Mann Judd. He specialises in manufacturing, technology, building and construction, retail, financial services, mining, and exploration. Daniel is responsible for audits of multiple ASX listed entities and assists clients with ASX listing preparations. He was appointed Partner at In.Corp in November 2016 and is a Registered Company Auditor and a CA Business Valuation Specialist.',
+      isPartner: true,
+    },
+    {
+      name: 'Volha Romanchik',
+      position: 'Audit Partner',
+      phone: '+61 2 8999 1199',
+      email: 'Volha.Romanchik@InCorpadvisory.au',
+      bio: 'Volha has 11 years of experience in Audit, Assurance, and Business Services. Prior to joining In.Corp, she worked at BDO and RSM in Australia, gaining experience with large proprietary and ASX listed entities, and audit engagements from the Auditor General of WA. She also possesses international commercial experience in Germany, Turkey, and Russia. Volha leads the In.Corp office in Perth, focusing on construction services, exploration and mining industries, and compliance engagements. Her experience includes auditing property management companies and assessing financial reporting frameworks and internal controls.',
       isPartner: true,
     },
     {
@@ -320,6 +345,14 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
       phone: '+61 2 8999 1199',
       email: 'Stella.Wongso@incorpadvisory.au',
       bio: 'Stella studied in Bandung, Indonesia and holds a Bachelor of Commerce from the University of New South Wales. She is a Chartered Accountant and joined In.Corp in 2019. Her experience includes financial services, health and beauty, retailing, technology, building and construction, transport and logistics, and ASX listed mining and exploration companies. She has prior volunteer work and experience in restaurant and printing businesses.',
+      isPartner: false,
+    },
+    {
+      name: 'Mika Yumoto',
+      position: 'Senior Team Member, Assurance',
+      phone: '+61 2 8999 1199',
+      email: 'Mika.Yumoto@InCorpadvisory.au',
+      bio: 'Mika is a Certified Public Accountant (CPA) in the Philippines with over 8 years\' experience in audit and assurance. She has extensive experience with not-for-profit organizations and various private sector industries including retail, energy, and utilities. Mika started her career at Ernst & Young (EY) in the Philippines for 3 years, gaining exposure to both local and international clients. She joined the In.Corp team last year and has since worked with a diverse range of clients, including those in transport and logistics, financial services, and ASX-listed companies.',
       isPartner: false,
     },
   ]

@@ -80,7 +80,7 @@ export function ChatInterface({ template = 'audit', dealInfo, dealName, messages
         </ResizablePanel>
         <ResizableHandle className="w-px bg-gray-300 hover:bg-gray-400" />
         <ResizablePanel defaultSize={50} minSize={30}>
-          <ProposalPreview template={template} dealInfo={dealInfo} customServices={customServices} onCustomServicesChange={onCustomServicesChange} solutionPackages={solutionPackages} onSolutionPackagesChange={onSolutionPackagesChange} />
+          <ProposalPreview key={dealName ?? 'preview'} template={template} dealInfo={dealInfo} customServices={customServices} onCustomServicesChange={onCustomServicesChange} solutionPackages={solutionPackages} onSolutionPackagesChange={onSolutionPackagesChange} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

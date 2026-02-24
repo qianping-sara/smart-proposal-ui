@@ -8,14 +8,20 @@ import { AppHeader } from '@/components/app-header'
 import { getDefaultChatMessages, type ChatMessage } from '@/lib/chat-types'
 import { USERS, getUser, type UserId } from '@/lib/users'
 import { createTaxCompliancePackage, type SolutionPackage } from '@/lib/solution-package'
+import {
+  buildInitialCustomServicesByChat,
+  buildInitialDealInfoByChat,
+  type CustomServiceRow,
+  type DealInfo,
+} from '@/lib/chat-dummy-data'
+
+export type { CustomServiceRow, DealInfo }
 
 export const AUDIT_SERVICES_LIST = [
   'Year-end audit of financial report',
   'Review of half-year financial report',
   'Statutory audit of financial statements',
 ] as const
-
-export type CustomServiceRow = { description: string; oneOff: string; recurring: string }
 
 function lastAssistantMessageHasNumberedList(messages: ChatMessage[]): boolean {
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -91,96 +97,10 @@ function isTaxComplianceQuestion(text: string): boolean {
   )
 }
 
-export type DealInfo = {
-  dealName: string
-  pipeline: string
-  contactPerson: string
-  contactEmail: string
-  contactTitle?: string
-  companyName?: string
-  companyShortName?: string
-  companyAddress?: string
-}
-
-const MOCK_DEAL_INFO_BY_CHAT: Record<string, DealInfo> = {
-  'Parable Church Ltd - Audit Proposal': {
-    dealName: 'Parable Church Ltd - Audit Proposal',
-    pipeline: 'Audit',
-    contactPerson: 'Sarah Chen',
-    contactEmail: 'sarah.chen@parablechurch.org',
-    contactTitle: 'Finance Director',
-    companyName: 'Parable Church Ltd',
-    companyShortName: 'PCL',
-    companyAddress: '12 Worship Lane, Sydney NSW 2000',
-  },
-  'Janus Electric Limited': {
-    dealName: 'Janus Electric Limited',
-    pipeline: 'Audit',
-    contactPerson: 'James Wong',
-    contactEmail: 'j.wong@januselectric.com.au',
-    contactTitle: 'CFO',
-    companyName: 'Janus Electric Limited',
-    companyShortName: 'JAN',
-    companyAddress: '45 Power Road, Melbourne VIC 3000',
-  },
-  'Viridis Green Data Centres Limited': {
-    dealName: 'Viridis Green Data Centres Limited',
-    pipeline: 'Audit',
-    contactPerson: 'Emma Liu',
-    contactEmail: 'emma.liu@viridisgreen.com',
-    contactTitle: 'Head of Finance',
-    companyName: 'Viridis Green Data Centres Limited',
-    companyShortName: 'VGDC',
-    companyAddress: '88 Green Tech Park, Brisbane QLD 4000',
-  },
-  'Omni Tanker Holdings Ltd': {
-    dealName: 'Omni Tanker Holdings Ltd',
-    pipeline: 'Audit',
-    contactPerson: 'Michael Brown',
-    contactEmail: 'm.brown@omnitanker.com',
-    contactTitle: 'Finance Manager',
-    companyName: 'Omni Tanker Holdings Ltd',
-    companyShortName: 'OTH',
-    companyAddress: '200 Harbour Drive, Perth WA 6000',
-  },
-  'Supa Technologies Audit': {
-    dealName: 'Supa Technologies Audit',
-    pipeline: 'Audit',
-    contactPerson: 'Alex Rivera',
-    contactEmail: 'alex.rivera@supatech.io',
-    contactTitle: 'COO',
-    companyName: 'Supa Technologies Pty Ltd',
-    companyShortName: 'SUPA',
-    companyAddress: 'Level 5, 100 Innovation Way, Sydney NSW 2000',
-  },
-}
-
 function buildInitialChatHistories(chatList: readonly string[]): Record<string, ChatMessage[]> {
   const next: Record<string, ChatMessage[]> = {}
   chatList.forEach((name) => {
     next[name] = getDefaultChatMessages()
-  })
-  return next
-}
-
-function buildInitialDealInfoByChat(chatList: readonly string[]): Record<string, DealInfo> {
-  const next: Record<string, DealInfo> = {}
-  chatList.forEach((name) => {
-    const mock = MOCK_DEAL_INFO_BY_CHAT[name as keyof typeof MOCK_DEAL_INFO_BY_CHAT]
-    if (mock) next[name] = mock
-  })
-  return next
-}
-
-const JANUS_FEE_PROPOSAL_DUMMY: CustomServiceRow[] = [
-  { description: 'Year-end audit of financial report - 30 June 2026', oneOff: '65,000', recurring: '' },
-  { description: 'Review of half-year financial report - 31 December 2026', oneOff: '30,000', recurring: '' },
-]
-
-function buildInitialCustomServicesByChat(chatList: readonly string[]): Record<string, CustomServiceRow[]> {
-  const next: Record<string, CustomServiceRow[]> = {}
-  chatList.forEach((name) => {
-    if (name === 'Janus Electric Limited') next[name] = [...JANUS_FEE_PROPOSAL_DUMMY]
   })
   return next
 }
