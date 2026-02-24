@@ -1,11 +1,12 @@
 'use client'
 
-import { ChevronDown, AlertTriangle } from 'lucide-react'
+import { ChevronDown, AlertTriangle, Pencil, Bookmark, FileX, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
@@ -31,9 +32,13 @@ interface ChatInterfaceProps {
   onCustomServicesChange?: (next: Array<{ description: string; oneOff: string; recurring: string }> | ((prev: Array<{ description: string; oneOff: string; recurring: string }>) => Array<{ description: string; oneOff: string; recurring: string }>)) => void
   solutionPackages?: SolutionPackage[]
   onSolutionPackagesChange?: (next: SolutionPackage[] | ((prev: SolutionPackage[]) => SolutionPackage[])) => void
+  onRenameChat?: (chatName: string) => void
+  onMarkAsTemplate?: (chatName: string) => void
+  onCloseChat?: (chatName: string) => void
+  onCopyServicesFromPastProposal?: (chatName: string) => void
 }
 
-export function ChatInterface({ template = 'audit', dealInfo, dealName, messages, onSendMessage, customServices, onCustomServicesChange, solutionPackages, onSolutionPackagesChange }: ChatInterfaceProps) {
+export function ChatInterface({ template = 'audit', dealInfo, dealName, messages, onSendMessage, customServices, onCustomServicesChange, solutionPackages, onSolutionPackagesChange, onRenameChat, onMarkAsTemplate, onCloseChat, onCopyServicesFromPastProposal }: ChatInterfaceProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2">
@@ -44,8 +49,24 @@ export function ChatInterface({ template = 'audit', dealInfo, dealName, messages
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem>{dealName}</DropdownMenuItem>
+          <DropdownMenuContent align="start" className="min-w-[12rem]">
+            <DropdownMenuItem onClick={() => onRenameChat?.(dealName)} className="gap-2">
+              <Pencil className="h-4 w-4 shrink-0" />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onMarkAsTemplate?.(dealName)} className="gap-2">
+              <Bookmark className="h-4 w-4 shrink-0" />
+              Mark as Template
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onCloseChat?.(dealName)} className="gap-2">
+              <FileX className="h-4 w-4 shrink-0" />
+              Close
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onCopyServicesFromPastProposal?.(dealName)} className="gap-2">
+              <Copy className="h-4 w-4 shrink-0" />
+              Clone historical proposal
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="flex items-center gap-2 text-gray-700">

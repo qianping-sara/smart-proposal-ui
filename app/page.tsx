@@ -528,6 +528,10 @@ export default function Page() {
               onCustomServicesChange={setCurrentCustomServices}
               solutionPackages={currentUser.template === 'standard' ? currentSolutionPackages : undefined}
               onSolutionPackagesChange={currentUser.template === 'standard' ? setCurrentSolutionPackages : undefined}
+              onRenameChat={() => {}}
+              onMarkAsTemplate={handleMarkAsTemplate}
+              onCloseChat={(chatName) => handleCloseChat(chatName, openChats.includes(chatName) ? 'open' : 'template')}
+              onCopyServicesFromPastProposal={() => {}}
             />
           </>
         )}
