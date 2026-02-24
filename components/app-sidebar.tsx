@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, SquareIcon, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
+import { Search, SquareIcon, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal, Bookmark, BookmarkMinus, FileX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -130,8 +130,14 @@ export function AppSidebar({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="min-w-[10rem]">
-                      <DropdownMenuItem onClick={() => onUnmarkAsTemplate(chat)}>Unmark as Template</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onCloseChat(chat, 'template')}>Close</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onUnmarkAsTemplate(chat)} className="gap-2">
+                        <BookmarkMinus className="h-4 w-4 shrink-0" />
+                        Unmark as Template
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onCloseChat(chat, 'template')} className="gap-2">
+                        <FileX className="h-4 w-4 shrink-0" />
+                        Close
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -172,8 +178,14 @@ export function AppSidebar({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="min-w-[10rem]">
-                      <DropdownMenuItem onClick={() => onMarkAsTemplate(chat)}>Mark as Template</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onCloseChat(chat, 'open')}>Close</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onMarkAsTemplate(chat)} className="gap-2">
+                        <Bookmark className="h-4 w-4 shrink-0" />
+                        Mark as Template
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onCloseChat(chat, 'open')} className="gap-2">
+                        <FileX className="h-4 w-4 shrink-0" />
+                        Close
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
