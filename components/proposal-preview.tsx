@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, ChevronRight, Edit2, Sparkles, Plus, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, Edit2, Sparkles, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -808,8 +808,8 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                         <thead>
                           <tr className="border-b border-gray-200 bg-gray-50">
                             <th className="px-2 py-1.5 text-left font-medium text-black">Nature of service</th>
-                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">One-off Fee (SGD)</th>
-                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">Recurring Fee (SGD)</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">One-off Fee (AUD)</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">Recurring Fee (AUD)</th>
                             <th className="px-2 py-1.5 w-8" />
                           </tr>
                         </thead>
@@ -914,8 +914,8 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                         <thead>
                           <tr className="border-b border-gray-200 bg-gray-50">
                             <th className="px-2 py-1.5 text-left font-medium text-black">Nature of service</th>
-                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">One-off Fee (SGD)</th>
-                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">Recurring Fee (SGD)</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">One-off Fee (AUD)</th>
+                            <th className="px-2 py-1.5 text-left font-medium text-black w-28">Recurring Fee (AUD)</th>
                             <th className="px-2 py-1.5 w-8" />
                           </tr>
                         </thead>
@@ -1319,17 +1319,26 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                           From library
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent>
-                          {teamLibrary.map((item, idx) => (
-                            <DropdownMenuItem
-                              key={idx}
-                              className="text-xs"
-                              onSelect={() => addTeamMemberFromLibrary(item)}
-                            >
-                              <span className="truncate" title={`${item.name} – ${item.position}`}>
-                                {item.name} · {item.position}
-                              </span>
-                            </DropdownMenuItem>
-                          ))}
+                          {teamLibrary.map((item, idx) => {
+                            const isInSession = teamMembers.some((m) => m.name === item.name)
+                            return (
+                              <DropdownMenuItem
+                                key={idx}
+                                className={cn('text-xs gap-2', isInSession && 'opacity-60 cursor-not-allowed')}
+                                disabled={isInSession}
+                                onSelect={() => !isInSession && addTeamMemberFromLibrary(item)}
+                              >
+                                {isInSession ? (
+                                  <Check className="h-3.5 w-3.5 shrink-0 text-black" />
+                                ) : (
+                                  <span className="w-3.5 shrink-0" aria-hidden />
+                                )}
+                                <span className="truncate" title={`${item.name} – ${item.position}`}>
+                                  {item.name} · {item.position}
+                                </span>
+                              </DropdownMenuItem>
+                            )
+                          })}
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
                     </DropdownMenuContent>

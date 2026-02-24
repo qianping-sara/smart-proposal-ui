@@ -172,6 +172,19 @@ function buildInitialDealInfoByChat(chatList: readonly string[]): Record<string,
   return next
 }
 
+const JANUS_FEE_PROPOSAL_DUMMY: CustomServiceRow[] = [
+  { description: 'Year-end audit of financial report - 30 June 2026', oneOff: '65,000', recurring: '' },
+  { description: 'Review of half-year financial report - 31 December 2026', oneOff: '30,000', recurring: '' },
+]
+
+function buildInitialCustomServicesByChat(chatList: readonly string[]): Record<string, CustomServiceRow[]> {
+  const next: Record<string, CustomServiceRow[]> = {}
+  chatList.forEach((name) => {
+    if (name === 'Janus Electric Limited') next[name] = [...JANUS_FEE_PROPOSAL_DUMMY]
+  })
+  return next
+}
+
 const DEFAULT_USER_ID: UserId = 'kenyu'
 
 export default function Page() {
@@ -185,7 +198,9 @@ export default function Page() {
   const [dealInfoByChat, setDealInfoByChat] = useState<Record<string, DealInfo>>(() =>
     buildInitialDealInfoByChat(currentUser.chatList)
   )
-  const [customServicesByChat, setCustomServicesByChat] = useState<Record<string, CustomServiceRow[]>>({})
+  const [customServicesByChat, setCustomServicesByChat] = useState<Record<string, CustomServiceRow[]>>(() =>
+    buildInitialCustomServicesByChat(currentUser.chatList)
+  )
   const [solutionPackagesByChat, setSolutionPackagesByChat] = useState<Record<string, SolutionPackage[]>>({})
   const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>(() =>
     buildInitialChatHistories(currentUser.chatList)
@@ -202,7 +217,7 @@ export default function Page() {
     setCurrentView('new')
     setDealInfoByChat(buildInitialDealInfoByChat(user.chatList))
     setChatHistories(buildInitialChatHistories(user.chatList))
-    setCustomServicesByChat({})
+    setCustomServicesByChat(buildInitialCustomServicesByChat(user.chatList))
     setSolutionPackagesByChat({})
   }, [])
 
