@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
+import { Search, Bookmark, AlertTriangle } from 'lucide-react'
 import { NewProposalForm } from '@/components/new-proposal-form'
 import { ChatInterface } from '@/components/chat-interface'
 import { AppSidebar } from '@/components/app-sidebar'
@@ -11,9 +12,14 @@ import { createTaxCompliancePackage, type SolutionPackage } from '@/lib/solution
 import {
   buildInitialCustomServicesByChat,
   buildInitialDealInfoByChat,
+  getFeeProposal,
   type CustomServiceRow,
   type DealInfo,
 } from '@/lib/chat-dummy-data'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 export type { CustomServiceRow, DealInfo }
 
@@ -125,6 +131,10 @@ export default function Page() {
   const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>(() =>
     buildInitialChatHistories(currentUser.chatList)
   )
+  const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false)
+  const [cloneTargetChat, setCloneTargetChat] = useState<string | null>(null)
+  const [cloneSourceChat, setCloneSourceChat] = useState<string | null>(null)
+  const [cloneSearch, setCloneSearch] = useState('')
   const pendingStandardServiceRef = useRef<string | null>(null)
 
   const handleSwitchUser = useCallback((userId: UserId) => {
@@ -169,6 +179,28 @@ export default function Page() {
   )
   const serviceAddReplyRef = useRef<string | null>(null)
   const showAuditListRef = useRef<boolean>(false)
+
+  const cloneCandidates = useMemo(() => {
+    const templateSet = new Set(templateChats)
+    const result: { name: string; isTemplate: boolean }[] = []
+    templateChats.forEach((name) => {
+      if (name !== cloneTargetChat) {
+        result.push({ name, isTemplate: true })
+      }
+    })
+    openChats.forEach((name) => {
+      if (name !== cloneTargetChat && !templateSet.has(name)) {
+        result.push({ name, isTemplate: false })
+      }
+    })
+    return result
+  }, [openChats, templateChats, cloneTargetChat])
+
+  const filteredCloneCandidates = useMemo(() => {
+    const q = cloneSearch.trim().toLowerCase()
+    if (!q) return cloneCandidates
+    return cloneCandidates.filter((c) => c.name.toLowerCase().includes(q))
+  }, [cloneCandidates, cloneSearch])
 
   const handleStartProposal = (data: DealInfo) => {
     const { dealName } = data
@@ -421,6 +453,42 @@ export default function Page() {
     }, 2400)
   }, [chatHistories, currentUser.template])
 
+  const handleOpenCloneDialog = useCallback((chatName: string) => {
+    setCloneTargetChat(chatName)
+    setCloneSourceChat(null)
+    setCloneSearch('')
+    setIsCloneDialogOpen(true)
+  }, [])
+
+  const handleConfirmClone = useCallback(() => {
+    if (!cloneTargetChat || !cloneSourceChat) return
+
+    setCustomServicesByChat((prev) => {
+      const sourceRows =
+        prev[cloneSourceChat] ??
+        getFeeProposal(cloneSourceChat) ??
+        []
+      return {
+        ...prev,
+        [cloneTargetChat]: sourceRows.map((row) => ({ ...row })),
+      }
+    })
+
+    setSolutionPackagesByChat((prev) => {
+      const sourcePkgs = prev[cloneSourceChat]
+      if (!sourcePkgs || sourcePkgs.length === 0) {
+        const { [cloneTargetChat]: _omit, ...rest } = prev
+        return rest
+      }
+      return {
+        ...prev,
+        [cloneTargetChat]: sourcePkgs.map((pkg) => ({ ...pkg })),
+      }
+    })
+
+    setIsCloneDialogOpen(false)
+  }, [cloneSourceChat, cloneTargetChat, setCustomServicesByChat, setSolutionPackagesByChat])
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
       <AppHeader currentUser={currentUser} onSwitchUser={handleSwitchUser} />
@@ -466,11 +534,102 @@ export default function Page() {
               onRenameChat={() => {}}
               onMarkAsTemplate={handleMarkAsTemplate}
               onCloseChat={(chatName) => handleCloseChat(chatName, openChats.includes(chatName) ? 'open' : 'template')}
-              onCopyServicesFromPastProposal={() => {}}
+              onCopyServicesFromPastProposal={handleOpenCloneDialog}
             />
           </>
         )}
       </div>
+
+      <Dialog
+        open={isCloneDialogOpen}
+        onOpenChange={(open) => {
+          setIsCloneDialogOpen(open)
+          if (!open) {
+            setCloneSourceChat(null)
+            setCloneTargetChat(null)
+            setCloneSearch('')
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clone historical proposal</DialogTitle>
+            <DialogDescription>
+              Select a conversation to reuse its proposal preview. The selected proposal preview will replace the current one in this conversation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-0">
+            <div className="mb-5 flex items-start gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+              <p>
+                Cloning will overwrite content of current proposal (except client info).
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Search conversation name"
+                  className="pl-9"
+                  value={cloneSearch}
+                  onChange={(e) => setCloneSearch(e.target.value)}
+                />
+              </div>
+              <div className="max-h-72 overflow-y-auto rounded-md border">
+                {filteredCloneCandidates.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-sm text-gray-500">
+                    No more conversations
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {filteredCloneCandidates.map((item) => (
+                      <button
+                        key={item.name}
+                        type="button"
+                        className={cn(
+                          'flex w-full items-center justify-between px-4 py-2 text-left text-sm hover:bg-gray-50',
+                          cloneSourceChat === item.name && 'bg-gray-50'
+                        )}
+                        onClick={() => setCloneSourceChat(item.name)}
+                      >
+                        <div className="flex min-w-0 items-center justify-between gap-2">
+                          <span className="truncate">{item.name}</span>
+                          {item.isTemplate && (
+                            <Bookmark className="h-4 w-4 shrink-0 text-gray-600" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setIsCloneDialogOpen(false)
+                setCloneSourceChat(null)
+                setCloneTargetChat(null)
+                setCloneSearch('')
+              }}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={!cloneSourceChat || !cloneTargetChat}
+              onClick={handleConfirmClone}
+              className="bg-gray-900 text-white hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-600"
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
