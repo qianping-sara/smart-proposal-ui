@@ -12,6 +12,11 @@ export type DealInfo = {
   companyName?: string
   companyShortName?: string
   companyAddress?: string
+  /**
+   * Optional key used to pull dummy Our Team / Experience data from CHAT_DUMMY_DATA.
+   * Defaults back to dealName when not provided.
+   */
+  dummyKey?: string
 }
 
 export type CustomServiceRow = {

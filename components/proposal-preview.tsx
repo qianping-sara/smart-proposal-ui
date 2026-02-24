@@ -48,6 +48,8 @@ interface ProposalPreviewProps {
     companyName?: string
     companyShortName?: string
     companyAddress?: string
+    // Optional key to pull dummy Our Team / Experience data from CHAT_DUMMY_DATA.
+    dummyKey?: string
   } | null
   customServices?: Array<{ description: string; oneOff: string; recurring: string }>
   onCustomServicesChange?: (next: Array<{ description: string; oneOff: string; recurring: string }> | ((prev: Array<{ description: string; oneOff: string; recurring: string }>) => Array<{ description: string; oneOff: string; recurring: string }>)) => void
@@ -166,8 +168,10 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
     },
   ]
 
+  const dummyKey = dealInfo?.dummyKey ?? dealInfo?.dealName
+
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
-    const chatName = dealInfo?.dealName
+    const chatName = dummyKey
     const ourTeam = chatName ? getOurTeam(chatName) : undefined
     if (ourTeam && ourTeam.length > 0) {
       return ourTeam.map((m, i) => ({ ...m, id: `dummy-team-${i}` }))
@@ -185,13 +189,27 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
   )
   const [industryFootnotes, setIndustryFootnotes] = useState('')
   const [industryCredentials, setIndustryCredentials] = useState<Array<{ id: string; companyName: string; industry?: string }>>(() => {
-    const chatName = dealInfo?.dealName
+    const chatName = dummyKey
     const experience = chatName ? getExperience(chatName) : undefined
     if (experience && experience.length > 0) {
       return experience.map((row, i) => ({ id: `dummy-cred-${i}`, companyName: row.companyName }))
     }
     return []
   })
+
+  useEffect(() => {
+    if (!dummyKey) return
+    const ourTeam = getOurTeam(dummyKey)
+    if (ourTeam && ourTeam.length > 0) {
+      setTeamMembers(ourTeam.map((m, i) => ({ ...m, id: `dummy-team-${i}` })))
+    }
+    const experience = getExperience(dummyKey)
+    if (experience && experience.length > 0) {
+      setIndustryCredentials(
+        experience.map((row, i) => ({ id: `dummy-cred-${i}`, companyName: row.companyName }))
+      )
+    }
+  }, [dummyKey])
   type IndustryLibraryItem = { industry: string; companyName: string }
   const industryLibrary: IndustryLibraryItem[] = [
     { industry: 'Construction', companyName: 'Deicorp Property Group Pty Ltd' },

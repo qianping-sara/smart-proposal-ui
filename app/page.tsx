@@ -463,6 +463,18 @@ export default function Page() {
   const handleConfirmClone = useCallback(() => {
     if (!cloneTargetChat || !cloneSourceChat) return
 
+    setDealInfoByChat((prev) => {
+      const current = prev[cloneTargetChat]
+      if (!current) return prev
+      return {
+        ...prev,
+        [cloneTargetChat]: {
+          ...current,
+          dummyKey: cloneSourceChat,
+        },
+      }
+    })
+
     setCustomServicesByChat((prev) => {
       const sourceRows =
         prev[cloneSourceChat] ??
@@ -487,7 +499,7 @@ export default function Page() {
     })
 
     setIsCloneDialogOpen(false)
-  }, [cloneSourceChat, cloneTargetChat, setCustomServicesByChat, setSolutionPackagesByChat])
+  }, [cloneSourceChat, cloneTargetChat, setCustomServicesByChat, setDealInfoByChat, setSolutionPackagesByChat])
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
