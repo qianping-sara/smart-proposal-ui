@@ -178,7 +178,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
     '**Annualised Total Fees (billed on completion, with monthly, quarterly & annual fees associated)**'
   type PaymentOptionTable = {
     id: string
-    optionLabel: (typeof OPTION_LABELS)[number]
+    optionLabel: string
     rows: PaymentOptionRow[]
     isEditing: boolean
     footerLabel1: string
@@ -2343,7 +2343,22 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                         <table className="w-full text-xs border-collapse min-w-[520px]">
                           <thead>
                             <tr className="border-b border-gray-200 bg-gray-100">
-                              <th className="px-2 py-1.5 text-left font-medium text-black">Option {tbl.optionLabel}</th>
+                              <th className="px-2 py-1.5 text-left font-medium text-black">
+                                {tbl.isEditing ? (
+                                  <Input
+                                    value={tbl.optionLabel}
+                                    onChange={(e) =>
+                                      setPaymentOptionTables((prev) =>
+                                        prev.map((x) => (x.id === tbl.id ? { ...x, optionLabel: e.target.value } : x))
+                                      )
+                                    }
+                                    className="border border-gray-200 text-xs h-7 px-1.5 bg-white font-medium"
+                                    placeholder="Option A"
+                                  />
+                                ) : (
+                                  `Option ${tbl.optionLabel || 'A'}`
+                                )}
+                              </th>
                               <th className="px-1.5 py-1.5 text-left font-medium text-black">Monthly Fees</th>
                               <th className="px-1.5 py-1.5 text-left font-medium text-black">Quarterly Fees</th>
                               <th className="px-1.5 py-1.5 text-left font-medium text-black">Annual Fees</th>
