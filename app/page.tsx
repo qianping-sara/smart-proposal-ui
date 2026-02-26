@@ -107,7 +107,7 @@ function isTaxComplianceQuestion(text: string): boolean {
 
 function isInitialStructuringQuestion(text: string): boolean {
   const t = text.trim().toLowerCase()
-  return /client\s+consults?\s+initial\s+structuring\s+service/i.test(t)
+  return /initial\s+structuring/i.test(t)
 }
 
 function buildInitialChatHistories(chatList: readonly string[]): Record<string, ChatMessage[]> {

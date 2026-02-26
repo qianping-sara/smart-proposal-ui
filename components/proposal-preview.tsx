@@ -82,6 +82,49 @@ function calculateRowAnnualTotal(row: {
   return `$${total.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+function aggregatePackageFees(pkg: SolutionPackage): { monthly: number; quarterly: number; annual: number; oneOff: number } {
+  let monthly = 0
+  let quarterly = 0
+  let annual = 0
+  let oneOff = 0
+  for (const row of pkg.services) {
+    const mq = row.monthlyQuarterly.trim()
+    const isQuarterly = /\bquarterly\b|\bquarter\b|\/quarter\b|per quarter\b/i.test(mq)
+    const isMonthly = /\bmonthly\b|\bmonth\b|\/month\b|per month\b/i.test(mq)
+    if (mq && (isQuarterly || isMonthly)) {
+      const amount = parseAmount(mq) ?? 0
+      if (isQuarterly) quarterly += amount
+      else monthly += amount
+    }
+    annual += parseAmount(row.annual) ?? 0
+    oneOff += parseAmount(row.onceOff) ?? 0
+  }
+  return { monthly, quarterly, annual, oneOff }
+}
+
+function formatCurrency(n: number): string {
+  if (n === 0) return '-'
+  return `$${n.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+type PaymentOptionRow = {
+  id: string
+  packageId: string
+  packageName: string
+  monthly: string
+  quarterly: string
+  annual: string
+  oneOff: string
+}
+
+function computeRowTotal(row: PaymentOptionRow): number {
+  const m = parseAmount(row.monthly) ?? 0
+  const q = parseAmount(row.quarterly) ?? 0
+  const a = parseAmount(row.annual) ?? 0
+  const o = parseAmount(row.oneOff) ?? 0
+  return m * 12 + q * 4 + a + o
+}
+
 interface ProposalPreviewProps {
   template?: TemplateId
   solutionPackages?: SolutionPackage[]
@@ -109,6 +152,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
     executive: true,
     solution: false,
     solutionPackage: false,
+    paymentOption: false,
     ourTeam: false,
     industryExperience: false,
     timeline: false,
@@ -128,6 +172,49 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
   const [feeSummary, setFeeSummary] = useState(defaultFeeSummary)
   const [feeDescriptionEditing, setFeeDescriptionEditing] = useState(false)
   const [feeSummaryEditing, setFeeSummaryEditing] = useState(false)
+  const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'] as const
+  const DEFAULT_FOOTER_LABEL1 = '**One-Off Fees**'
+  const DEFAULT_FOOTER_LABEL2 =
+    '**Annualised Total Fees (billed on completion, with monthly, quarterly & annual fees associated)**'
+  type PaymentOptionTable = {
+    id: string
+    optionLabel: (typeof OPTION_LABELS)[number]
+    rows: PaymentOptionRow[]
+    isEditing: boolean
+    footerLabel1: string
+    footerLabel2: string
+  }
+  const buildPaymentOptionRowsFromPackages = (pkgs: SolutionPackage[]): PaymentOptionRow[] =>
+    pkgs.map((p) => {
+      const agg = aggregatePackageFees(p)
+      return {
+        id: genId(),
+        packageId: p.id,
+        packageName: p.name,
+        monthly: agg.monthly > 0 ? formatCurrency(agg.monthly) : '-',
+        quarterly: agg.quarterly > 0 ? formatCurrency(agg.quarterly) : '-',
+        annual: agg.annual > 0 ? formatCurrency(agg.annual) : '-',
+        oneOff: agg.oneOff > 0 ? formatCurrency(agg.oneOff) : '-',
+      }
+    })
+  const [paymentOptionTables, setPaymentOptionTables] = useState<PaymentOptionTable[]>([])
+  const addPaymentOptionTable = () => {
+    if (paymentOptionTables.length >= 5) return
+    const labelsUsed = new Set(paymentOptionTables.map((t) => t.optionLabel))
+    const nextLabel = OPTION_LABELS.find((l) => !labelsUsed.has(l)) ?? OPTION_LABELS[0]
+    const rows = buildPaymentOptionRowsFromPackages(solutionPackages)
+    setPaymentOptionTables((prev) => [
+      ...prev,
+      {
+        id: genId(),
+        optionLabel: nextLabel,
+        rows,
+        isEditing: false,
+        footerLabel1: DEFAULT_FOOTER_LABEL1,
+        footerLabel2: DEFAULT_FOOTER_LABEL2,
+      },
+    ])
+  }
   const [executiveEditMode, setExecutiveEditMode] = useState(false)
   const [executiveAiImproveOpen, setExecutiveAiImproveOpen] = useState(false)
   const [executiveAiResult, setExecutiveAiResult] = useState<string | null>(null)
@@ -2191,6 +2278,275 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
           </Collapsible>
             )
           })()}
+
+          {/* Payment Option (Optional) - standard template only */}
+          {template === 'standard' && (
+          <Collapsible open={openSections.paymentOption} onOpenChange={() => toggleSection('paymentOption')}>
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      !openSections.paymentOption && '-rotate-90'
+                    )}
+                  />
+                  <span className="text-sm font-medium text-black">Payment Option (Optional)</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-black hover:bg-gray-50 text-xs h-8 shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    addPaymentOptionTable()
+                  }}
+                  disabled={paymentOptionTables.length >= 5}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-gray-100 px-4 py-4 space-y-4">
+                  {paymentOptionTables.map((tbl) => (
+                    <div key={tbl.id} className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50">
+                        <span className="text-xs font-medium text-black">Option {tbl.optionLabel}</span>
+                        <div className="flex items-center gap-1">
+                          {tbl.isEditing && (
+                            <button
+                              type="button"
+                              className="flex h-7 items-center gap-1 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                              onClick={() => setPaymentOptionTables((prev) => prev.filter((x) => x.id !== tbl.id))}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Remove table
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="flex h-7 items-center gap-1 px-2 text-xs text-gray-600 hover:text-black hover:bg-gray-100 rounded"
+                            onClick={() =>
+                              setPaymentOptionTables((prev) =>
+                                prev.map((x) => (x.id === tbl.id ? { ...x, isEditing: !x.isEditing } : x))
+                              )
+                            }
+                          >
+                            <Edit2 className="h-3 w-3" />
+                            {tbl.isEditing ? 'Done' : 'Edit'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs border-collapse min-w-[520px]">
+                          <thead>
+                            <tr className="border-b border-gray-200 bg-gray-100">
+                              <th className="px-2 py-1.5 text-left font-medium text-black">Option {tbl.optionLabel}</th>
+                              <th className="px-1.5 py-1.5 text-left font-medium text-black">Monthly Fees</th>
+                              <th className="px-1.5 py-1.5 text-left font-medium text-black">Quarterly Fees</th>
+                              <th className="px-1.5 py-1.5 text-left font-medium text-black">Annual Fees</th>
+                              <th className="px-1.5 py-1.5 text-left font-medium text-black">One-off Fees</th>
+                              <th className="px-1.5 py-1.5 text-left font-medium text-black">Total (Annualized)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {tbl.rows.map((row) => (
+                              <tr key={row.id} className="border-b border-gray-100 last:border-b-0 bg-white">
+                                <td className="px-2 py-1.5 align-middle bg-white">
+                                  {tbl.isEditing ? (
+                                    <Input
+                                      value={row.packageName}
+                                      onChange={(e) =>
+                                        setPaymentOptionTables((prev) =>
+                                          prev.map((x) =>
+                                            x.id === tbl.id
+                                              ? {
+                                                  ...x,
+                                                  rows: x.rows.map((r) =>
+                                                    r.id === row.id ? { ...r, packageName: e.target.value } : r
+                                                  ),
+                                                }
+                                              : x
+                                          )
+                                        )
+                                      }
+                                      className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                    />
+                                  ) : (
+                                    <span className="text-gray-900">{row.packageName}</span>
+                                  )}
+                                </td>
+                                <td className="px-1.5 py-1.5 align-middle bg-white">
+                                  {tbl.isEditing ? (
+                                    <Input
+                                      value={row.monthly}
+                                      onChange={(e) =>
+                                        setPaymentOptionTables((prev) =>
+                                          prev.map((x) =>
+                                            x.id === tbl.id
+                                              ? {
+                                                  ...x,
+                                                  rows: x.rows.map((r) =>
+                                                    r.id === row.id ? { ...r, monthly: e.target.value } : r
+                                                  ),
+                                                }
+                                              : x
+                                          )
+                                        )
+                                      }
+                                      className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                    />
+                                  ) : (
+                                    <span className="text-gray-900">{row.monthly}</span>
+                                  )}
+                                </td>
+                                <td className="px-1.5 py-1.5 align-middle bg-white">
+                                  {tbl.isEditing ? (
+                                    <Input
+                                      value={row.quarterly}
+                                      onChange={(e) =>
+                                        setPaymentOptionTables((prev) =>
+                                          prev.map((x) =>
+                                            x.id === tbl.id
+                                              ? {
+                                                  ...x,
+                                                  rows: x.rows.map((r) =>
+                                                    r.id === row.id ? { ...r, quarterly: e.target.value } : r
+                                                  ),
+                                                }
+                                              : x
+                                          )
+                                        )
+                                      }
+                                      className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                    />
+                                  ) : (
+                                    <span className="text-gray-900">{row.quarterly}</span>
+                                  )}
+                                </td>
+                                <td className="px-1.5 py-1.5 align-middle bg-white">
+                                  {tbl.isEditing ? (
+                                    <Input
+                                      value={row.annual}
+                                      onChange={(e) =>
+                                        setPaymentOptionTables((prev) =>
+                                          prev.map((x) =>
+                                            x.id === tbl.id
+                                              ? {
+                                                  ...x,
+                                                  rows: x.rows.map((r) =>
+                                                    r.id === row.id ? { ...r, annual: e.target.value } : r
+                                                  ),
+                                                }
+                                              : x
+                                          )
+                                        )
+                                      }
+                                      className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                    />
+                                  ) : (
+                                    <span className="text-gray-900">{row.annual}</span>
+                                  )}
+                                </td>
+                                <td className="px-1.5 py-1.5 align-middle bg-white">
+                                  {tbl.isEditing ? (
+                                    <Input
+                                      value={row.oneOff}
+                                      onChange={(e) =>
+                                        setPaymentOptionTables((prev) =>
+                                          prev.map((x) =>
+                                            x.id === tbl.id
+                                              ? {
+                                                  ...x,
+                                                  rows: x.rows.map((r) =>
+                                                    r.id === row.id ? { ...r, oneOff: e.target.value } : r
+                                                  ),
+                                                }
+                                              : x
+                                          )
+                                        )
+                                      }
+                                      className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                    />
+                                  ) : (
+                                    <span className="text-gray-900">{row.oneOff}</span>
+                                  )}
+                                </td>
+                                <td className="px-1.5 py-1.5 align-middle bg-white font-medium text-gray-900">
+                                  {computeRowTotal(row) > 0 ? formatCurrency(computeRowTotal(row)) : '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          {tbl.rows.length > 0 && (
+                            <>
+                              <tfoot>
+                                <tr className="border-t border-gray-200 bg-gray-50">
+                                  <td colSpan={5} className="px-2 py-1.5 text-left">
+                                    {tbl.isEditing ? (
+                                      <Input
+                                        value={tbl.footerLabel1}
+                                        onChange={(e) =>
+                                          setPaymentOptionTables((prev) =>
+                                            prev.map((x) => (x.id === tbl.id ? { ...x, footerLabel1: e.target.value } : x))
+                                          )
+                                        }
+                                        className="border border-gray-200 text-xs h-7 px-1.5 bg-white"
+                                      />
+                                    ) : (
+                                      <span className="font-medium text-gray-900"><BoldText text={tbl.footerLabel1} /></span>
+                                    )}
+                                  </td>
+                                  <td className="px-1.5 py-1.5 font-medium text-gray-900">
+                                    {formatCurrency(tbl.rows.reduce((s, r) => s + (parseAmount(r.oneOff) ?? 0), 0))}
+                                  </td>
+                                </tr>
+                                <tr className="border-t border-gray-100 bg-gray-50">
+                                  <td colSpan={5} className="px-2 py-1.5 text-left">
+                                    {tbl.isEditing ? (
+                                      <Input
+                                        value={tbl.footerLabel2}
+                                        onChange={(e) =>
+                                          setPaymentOptionTables((prev) =>
+                                            prev.map((x) => (x.id === tbl.id ? { ...x, footerLabel2: e.target.value } : x))
+                                          )
+                                        }
+                                        className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                      />
+                                    ) : (
+                                      <span className="text-xs font-medium text-gray-900">
+                                        <BoldText text={tbl.footerLabel2} />
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-1.5 py-1.5 font-medium text-gray-900">
+                                    {formatCurrency(
+                                      tbl.rows.reduce((s, r) => {
+                                        const m = parseAmount(r.monthly) ?? 0
+                                        const q = parseAmount(r.quarterly) ?? 0
+                                        const a = parseAmount(r.annual) ?? 0
+                                        return s + m * 12 + q * 4 + a
+                                      }, 0)
+                                    )}
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </>
+                          )}
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                  {paymentOptionTables.length === 0 && (
+                    <p className="text-xs text-gray-500">Click &quot;+ Add&quot; to add a payment option table.</p>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+          )}
 
           {/* Appendix (Optional) */}
           <Collapsible open={openSections.appendix} onOpenChange={() => toggleSection('appendix')}>
