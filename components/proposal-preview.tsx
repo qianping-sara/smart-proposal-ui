@@ -35,6 +35,53 @@ function genId(): string {
   return `sp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
 
+function BoldText({ text }: { text: string }) {
+  const parts: React.ReactNode[] = []
+  let lastIndex = 0
+  const re = /\*\*(.+?)\*\*/g
+  let m
+  while ((m = re.exec(text)) !== null) {
+    parts.push(text.slice(lastIndex, m.index))
+    parts.push(<strong key={m.index}>{m[1]}</strong>)
+    lastIndex = m.index + m[0].length
+  }
+  parts.push(text.slice(lastIndex))
+  return <>{parts}</>
+}
+
+function parseAmount(text: string): number | null {
+  const cleaned = text.replace(/,/g, '')
+  const match = cleaned.match(/\$?\s*([\d.]+)/)
+  return match ? parseFloat(match[1]) : null
+}
+
+function calculateRowAnnualTotal(row: {
+  monthlyQuarterly: string
+  annual: string
+  onceOff: string
+}): string {
+  let total = 0
+  const mq = row.monthlyQuarterly.trim()
+  const isQuarterly = /\bquarterly\b|\bquarter\b|\/quarter\b|per quarter\b/i.test(mq)
+  const isMonthly = /\bmonthly\b|\bmonth\b|\/month\b|per month\b/i.test(mq)
+
+  if (mq && (isQuarterly || isMonthly)) {
+    const amount = parseAmount(mq)
+    if (amount !== null) {
+      total += isQuarterly ? amount * 4 : amount * 12
+    }
+  }
+
+  const annualAmount = parseAmount(row.annual)
+  if (annualAmount !== null) total += annualAmount
+
+  const onceOffAmount = parseAmount(row.onceOff)
+  if (onceOffAmount !== null) total += onceOffAmount
+
+  if (total === 0) return '-'
+  return `$${total.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
 interface ProposalPreviewProps {
   template?: TemplateId
   solutionPackages?: SolutionPackage[]
@@ -58,6 +105,7 @@ interface ProposalPreviewProps {
 export function ProposalPreview({ template = 'audit', solutionPackages: solutionPackagesProp, onSolutionPackagesChange, dealInfo, customServices, onCustomServicesChange }: ProposalPreviewProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     client: true,
+    proposalName: true,
     executive: true,
     solution: false,
     solutionPackage: false,
@@ -70,6 +118,16 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
   const solutionPackages = template === 'standard' && solutionPackagesProp !== undefined ? solutionPackagesProp : internalSolutionPackages
   const setSolutionPackages = template === 'standard' && onSolutionPackagesChange != null ? onSolutionPackagesChange : setInternalSolutionPackages
   const [isClientEditing, setIsClientEditing] = useState(false)
+  const [proposalName, setProposalName] = useState('')
+  const [isProposalNameEditing, setIsProposalNameEditing] = useState(false)
+  const defaultFeeDescription =
+    "This section outlines InCorp Advisory's proposed services and estimated fees for your company.  Our fee structure includes initial setup fees, as well as ongoing charges that may be billed monthly, quarterly, or annually. Additionally, fees may be incurred based on the time spent on specific tasks or on a per-instance basis.\n\nFor any additional services not encompassed by this proposal that may incur additional charges, we will receive your approval before any work commences. Please note that all fees mentioned are in **Australian Dollars**, exclusive of the prevailing 10% Goods and Services Tax (GST).\n\n**All fees quoted are in AUD, and exclude our 2.5% disbursement charge and 10% GST.**"
+  const defaultFeeSummary =
+    "Please note that all fees mentioned are in **Australian Dollars**, exclusive of the prevailing 10% Goods and Services Tax (GST).\n\n**All fees quoted below exclude our 2.5% disbursement charge and 10% GST**"
+  const [feeDescription, setFeeDescription] = useState(defaultFeeDescription)
+  const [feeSummary, setFeeSummary] = useState(defaultFeeSummary)
+  const [feeDescriptionEditing, setFeeDescriptionEditing] = useState(false)
+  const [feeSummaryEditing, setFeeSummaryEditing] = useState(false)
   const [executiveEditMode, setExecutiveEditMode] = useState(false)
   const [executiveAiImproveOpen, setExecutiveAiImproveOpen] = useState(false)
   const [executiveAiResult, setExecutiveAiResult] = useState<string | null>(null)
@@ -711,6 +769,74 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
               </CollapsibleContent>
             </div>
           </Collapsible>
+
+          {/* Proposal Name */}
+          {template === 'standard' && (
+          <Collapsible open={openSections.proposalName} onOpenChange={() => toggleSection('proposalName')}>
+            <div className="group rounded-lg border border-gray-200 bg-white">
+              <CollapsibleTrigger className="flex h-12 w-full shrink-0 items-center justify-between px-4 text-left hover:bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      !openSections.proposalName && '-rotate-90'
+                    )}
+                  />
+                  <span className="text-sm font-medium text-black">Proposal Name</span>
+                </div>
+                <div
+                  className="flex h-8 items-center gap-1 px-2 text-sm text-gray-600 hover:text-black"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsProposalNameEditing(true)
+                  }}
+                >
+                  <Edit2 className="h-3 w-3" />
+                  Edit
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-gray-100 px-4 py-3">
+                  {isProposalNameEditing ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="mb-1 block text-xs font-normal text-black">
+                          Proposal Name
+                        </label>
+                        <Input
+                          placeholder="Enter proposal name"
+                          value={proposalName}
+                          onChange={(e) => setProposalName(e.target.value)}
+                          className="border-gray-300 text-sm placeholder:text-gray-400"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-gray-300 text-black hover:bg-gray-50"
+                          onClick={() => setIsProposalNameEditing(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button size="sm" className="bg-gray-600 hover:bg-gray-700 text-white" onClick={() => setIsProposalNameEditing(false)}>
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <dl className="space-y-1 text-sm">
+                      <div className="flex gap-2">
+                        <dt className="text-gray-600">Proposal Name:</dt>
+                        <dd className="text-gray-900">{proposalName || '-'}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+          )}
 
           {/* Executive Summary - temporarily hidden */}
           {false && (
@@ -1785,6 +1911,36 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="border-t border-gray-100 px-4 py-4 space-y-4">
+                  {/* Fee description - above Add Service */}
+                  <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                    <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50">
+                      <span className="text-xs font-medium text-black">Fee description</span>
+                      <button
+                        type="button"
+                        className="flex h-7 items-center gap-1 px-2 text-xs text-gray-600 hover:text-black hover:bg-gray-100 rounded"
+                        onClick={() => setFeeDescriptionEditing((prev) => !prev)}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                        {feeDescriptionEditing ? 'Done' : 'Edit'}
+                      </button>
+                    </div>
+                    <div className="px-3 py-2">
+                      {feeDescriptionEditing ? (
+                        <Textarea
+                          value={feeDescription}
+                          onChange={(e) => setFeeDescription(e.target.value)}
+                          rows={6}
+                          className="min-h-0 resize-y border border-gray-200 text-sm w-full"
+                          placeholder="Enter fee description..."
+                        />
+                      ) : (
+                        <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
+                          <BoldText text={feeDescription} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {!hasSolutionPackageData ? (
                     <Button
                       type="button"
@@ -1831,13 +1987,14 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                             </button>
                           </div>
                           <div className="overflow-x-auto min-w-0">
-                            <table className="w-full text-xs border-collapse table-fixed min-w-[480px]">
+                            <table className="w-full text-xs border-collapse table-fixed min-w-[560px]">
                               <thead>
                                 <tr className="border-b border-gray-200 bg-gray-100">
-                                  <th className="px-2 py-1.5 text-left font-medium text-black w-[40%] min-w-[160px]">Scope of work</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[20%] min-w-[110px] whitespace-nowrap">Monthly/Quarterly</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[20%] min-w-[80px]">Annual</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[20%] min-w-[90px]">Once-off</th>
+                                  <th className="px-2 py-1.5 text-left font-medium text-black w-[35%] min-w-[140px]">Scope of work</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[16%] min-w-[100px] whitespace-nowrap">Monthly/Quarterly</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[14%] min-w-[70px]">Annual</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[14%] min-w-[80px]">Once-off</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[14%] min-w-[80px]">Total</th>
                                   <th className="px-1 py-1.5 w-6 shrink-0 text-left font-medium text-black" aria-label="Action" />
                                 </tr>
                               </thead>
@@ -1908,7 +2065,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                         placeholder="-"
                                       />
                                     </td>
-                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[90px]">
+                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[80px]">
                                       <Input
                                         value={row.onceOff}
                                         onChange={(e) =>
@@ -1928,6 +2085,9 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                         className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
                                         placeholder="-"
                                       />
+                                    </td>
+                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[80px] font-medium text-gray-900">
+                                      {calculateRowAnnualTotal(row)}
                                     </td>
                                     <td className="px-1 py-1.5 align-top bg-white w-6 shrink-0">
                                       <button
@@ -1995,6 +2155,36 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                       </Button>
                     </>
                   )}
+
+                  {/* Fee Summary - below Add Service */}
+                  <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                    <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50">
+                      <span className="text-xs font-medium text-black">Fee Summary</span>
+                      <button
+                        type="button"
+                        className="flex h-7 items-center gap-1 px-2 text-xs text-gray-600 hover:text-black hover:bg-gray-100 rounded"
+                        onClick={() => setFeeSummaryEditing((prev) => !prev)}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                        {feeSummaryEditing ? 'Done' : 'Edit'}
+                      </button>
+                    </div>
+                    <div className="px-3 py-2">
+                      {feeSummaryEditing ? (
+                        <Textarea
+                          value={feeSummary}
+                          onChange={(e) => setFeeSummary(e.target.value)}
+                          rows={4}
+                          className="min-h-0 resize-y border border-gray-200 text-sm w-full"
+                          placeholder="Enter fee summary..."
+                        />
+                      ) : (
+                        <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
+                          <BoldText text={feeSummary} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CollapsibleContent>
             </div>
