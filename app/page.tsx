@@ -8,7 +8,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
 import { getDefaultChatMessages, type ChatMessage } from '@/lib/chat-types'
 import { USERS, getUser, type UserId } from '@/lib/users'
-import { createTaxCompliancePackage, type SolutionPackage } from '@/lib/solution-package'
+import { createTaxCompliancePackage, createInitialStructuringPackage, type SolutionPackage } from '@/lib/solution-package'
 import {
   buildInitialCustomServicesByChat,
   buildInitialDealInfoByChat,
@@ -68,7 +68,9 @@ function extractCompanyNameFromInput(text: string): string | null {
 
 function isConfirmAddAuditServices(text: string): boolean {
   const t = text.trim().toLowerCase()
-  return ['yes', '要', '对', '是的', 'y', 'ok', 'sure'].some((w) => t === w || t.startsWith(w + ' ') || t.endsWith(' ' + w))
+  return ['yes', 'add', '要', '对', '是的', 'y', 'ok', 'sure', '1'].some(
+    (w) => t === w || t.startsWith(w + ' ') || t.endsWith(' ' + w)
+  )
 }
 
 function wantsAuditServiceList(text: string): boolean {
@@ -101,6 +103,11 @@ function isTaxComplianceQuestion(text: string): boolean {
     /any\s+tax\s+service/i.test(t) ||
     /any\s+compliance\s+service/i.test(t)
   )
+}
+
+function isInitialStructuringQuestion(text: string): boolean {
+  const t = text.trim().toLowerCase()
+  return /client\s+consults?\s+initial\s+structuring\s+service/i.test(t)
 }
 
 function buildInitialChatHistories(chatList: readonly string[]): Record<string, ChatMessage[]> {
@@ -254,6 +261,11 @@ export default function Page() {
 
     if (template === 'standard') {
       if (pendingStandardServiceRef.current && isConfirmAddAuditServices(text)) {
+        const pending = pendingStandardServiceRef.current
+        const createPackage =
+          pending === 'Initial Structuring – Pty Ltd Company'
+            ? createInitialStructuringPackage
+            : createTaxCompliancePackage
         setChatHistories((prev) => ({
           ...prev,
           [chatName]: [...(prev[chatName] ?? []), userMsg, { type: 'assistant-loading', step: 'Planning' }],
@@ -261,7 +273,7 @@ export default function Page() {
         setTimeout(() => {
           setSolutionPackagesByChat((prev) => ({
             ...prev,
-            [chatName]: [...(prev[chatName] ?? []), createTaxCompliancePackage()],
+            [chatName]: [...(prev[chatName] ?? []), createPackage()],
           }))
           pendingStandardServiceRef.current = null
           setChatHistories((prev) => {
@@ -269,6 +281,36 @@ export default function Page() {
             return {
               ...prev,
               [chatName]: [...list, { type: 'assistant', content: 'Done. Added to Solution Package.' }],
+            }
+          })
+        }, 2400)
+        return
+      }
+      if (isInitialStructuringQuestion(text)) {
+        pendingStandardServiceRef.current = 'Initial Structuring – Pty Ltd Company'
+        setChatHistories((prev) => ({
+          ...prev,
+          [chatName]: [...(prev[chatName] ?? []), userMsg, { type: 'assistant-loading', step: 'Planning' }],
+        }))
+        setTimeout(() => {
+          setChatHistories((prev) => {
+            const list = (prev[chatName] ?? []).filter((m) => m.type !== 'assistant-loading')
+            return { ...prev, [chatName]: [...list, { type: 'assistant-loading', step: 'Searching' }] }
+          })
+        }, 1200)
+        setTimeout(() => {
+          setChatHistories((prev) => {
+            const list = (prev[chatName] ?? []).filter((m) => m.type !== 'assistant-loading')
+            return {
+              ...prev,
+              [chatName]: [
+                ...list,
+                {
+                  type: 'assistant',
+                  content: 'I found the following. Would you like to add this to your Solution Package?',
+                  numberedList: ['Initial Structuring – Pty Ltd Company'],
+                },
+              ],
             }
           })
         }, 2400)
