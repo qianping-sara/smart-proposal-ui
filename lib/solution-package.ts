@@ -3,7 +3,8 @@
 export type SolutionPackageServiceRow = {
   id: string
   scopeOfWork: string
-  monthlyQuarterly: string
+  monthly: string
+  quarterly: string
   annual: string
   onceOff: string
 }
@@ -24,8 +25,6 @@ const ROW1_ANNUAL = `$5,000.00`
 
 const ROW2_SCOPE = `3.2   Outsourced tax compliance services, including:· Periodic review of accounting file prepared by bookkeeper, including key account reconciliations, adjusting journals and feedback;· Preparation and lodgement of quarterly Business Activity Statement ("BAS") returns with the Australian Taxation Office.`
 
-const ROW2_MONTHLY_QUARTERLY = `$750.00 Quarterly payment`
-
 /** Returns a new Tax & Compliance Services package with generated ids. */
 export function createTaxCompliancePackage(): SolutionPackage {
   return {
@@ -35,14 +34,16 @@ export function createTaxCompliancePackage(): SolutionPackage {
       {
         id: genId(),
         scopeOfWork: ROW1_SCOPE,
-        monthlyQuarterly: '',
+        monthly: '',
+        quarterly: '',
         annual: ROW1_ANNUAL,
         onceOff: '',
       },
       {
         id: genId(),
         scopeOfWork: ROW2_SCOPE,
-        monthlyQuarterly: ROW2_MONTHLY_QUARTERLY,
+        monthly: '',
+        quarterly: '$750.00',
         annual: '',
         onceOff: '',
       },
@@ -67,14 +68,16 @@ export function createInitialStructuringPackage(): SolutionPackage {
       {
         id: genId(),
         scopeOfWork: INITIAL_STRUCTURING_ROW1_SCOPE,
-        monthlyQuarterly: '',
+        monthly: '',
+        quarterly: '',
         annual: '',
         onceOff: '$2,500.00',
       },
       {
         id: genId(),
         scopeOfWork: INITIAL_STRUCTURING_ROW2_SCOPE,
-        monthlyQuarterly: '',
+        monthly: '',
+        quarterly: '',
         annual: '',
         onceOff: '$600.00',
       },

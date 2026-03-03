@@ -56,27 +56,16 @@ function parseAmount(text: string): number | null {
 }
 
 function calculateRowAnnualTotal(row: {
-  monthlyQuarterly: string
+  monthly: string
+  quarterly: string
   annual: string
   onceOff: string
 }): string {
-  let total = 0
-  const mq = row.monthlyQuarterly.trim()
-  const isQuarterly = /\bquarterly\b|\bquarter\b|\/quarter\b|per quarter\b/i.test(mq)
-  const isMonthly = /\bmonthly\b|\bmonth\b|\/month\b|per month\b/i.test(mq)
-
-  if (mq && (isQuarterly || isMonthly)) {
-    const amount = parseAmount(mq)
-    if (amount !== null) {
-      total += isQuarterly ? amount * 4 : amount * 12
-    }
-  }
-
-  const annualAmount = parseAmount(row.annual)
-  if (annualAmount !== null) total += annualAmount
-
-  const onceOffAmount = parseAmount(row.onceOff)
-  if (onceOffAmount !== null) total += onceOffAmount
+  const monthlyAmount = parseAmount(row.monthly) ?? 0
+  const quarterlyAmount = parseAmount(row.quarterly) ?? 0
+  const annualAmount = parseAmount(row.annual) ?? 0
+  const onceOffAmount = parseAmount(row.onceOff) ?? 0
+  const total = monthlyAmount * 12 + quarterlyAmount * 4 + annualAmount + onceOffAmount
 
   if (total === 0) return '-'
   return `$${total.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -88,14 +77,8 @@ function aggregatePackageFees(pkg: SolutionPackage): { monthly: number; quarterl
   let annual = 0
   let oneOff = 0
   for (const row of pkg.services) {
-    const mq = row.monthlyQuarterly.trim()
-    const isQuarterly = /\bquarterly\b|\bquarter\b|\/quarter\b|per quarter\b/i.test(mq)
-    const isMonthly = /\bmonthly\b|\bmonth\b|\/month\b|per month\b/i.test(mq)
-    if (mq && (isQuarterly || isMonthly)) {
-      const amount = parseAmount(mq) ?? 0
-      if (isQuarterly) quarterly += amount
-      else monthly += amount
-    }
+    monthly += parseAmount(row.monthly ?? '') ?? 0
+    quarterly += parseAmount(row.quarterly ?? '') ?? 0
     annual += parseAmount(row.annual) ?? 0
     oneOff += parseAmount(row.onceOff) ?? 0
   }
@@ -2040,7 +2023,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                           {
                             id: genId(),
                             name: '',
-                            services: [{ id: genId(), scopeOfWork: '', monthlyQuarterly: '', annual: '', onceOff: '' }],
+                            services: [{ id: genId(), scopeOfWork: '', monthly: '', quarterly: '', annual: '', onceOff: '' }],
                           },
                         ])
                       }
@@ -2074,14 +2057,15 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                             </button>
                           </div>
                           <div className="overflow-x-auto min-w-0">
-                            <table className="w-full text-xs border-collapse table-fixed min-w-[560px]">
+                            <table className="w-full text-xs border-collapse table-fixed min-w-[600px]">
                               <thead>
                                 <tr className="border-b border-gray-200 bg-gray-100">
-                                  <th className="px-2 py-1.5 text-left font-medium text-black w-[35%] min-w-[140px]">Scope of work</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[16%] min-w-[100px] whitespace-nowrap">Monthly/Quarterly</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[14%] min-w-[70px]">Annual</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[14%] min-w-[80px]">Once-off</th>
-                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[14%] min-w-[80px]">Total</th>
+                                  <th className="px-2 py-1.5 text-left font-medium text-black w-[32%] min-w-[130px]">Scope of work</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[13%] min-w-[80px]">Monthly</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[13%] min-w-[80px]">Quarterly</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[12%] min-w-[65px]">Annual</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[12%] min-w-[75px]">Once-off</th>
+                                  <th className="px-1.5 py-1.5 text-left font-medium text-black w-[14%] min-w-[75px]">Total</th>
                                   <th className="px-1 py-1.5 w-6 shrink-0 text-left font-medium text-black" aria-label="Action" />
                                 </tr>
                               </thead>
@@ -2110,9 +2094,9 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                         placeholder="Scope of work..."
                                       />
                                     </td>
-                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[110px]">
+                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[80px]">
                                       <Input
-                                        value={row.monthlyQuarterly}
+                                        value={row.monthly}
                                         onChange={(e) =>
                                           setSolutionPackages((prev) =>
                                             prev.map((x) =>
@@ -2120,7 +2104,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                                 ? {
                                                     ...x,
                                                     services: x.services.map((s) =>
-                                                      s.id === row.id ? { ...s, monthlyQuarterly: e.target.value } : s
+                                                      s.id === row.id ? { ...s, monthly: e.target.value } : s
                                                     ),
                                                   }
                                                 : x
@@ -2132,6 +2116,27 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                       />
                                     </td>
                                     <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[80px]">
+                                      <Input
+                                        value={row.quarterly}
+                                        onChange={(e) =>
+                                          setSolutionPackages((prev) =>
+                                            prev.map((x) =>
+                                              x.id === pkg.id
+                                                ? {
+                                                    ...x,
+                                                    services: x.services.map((s) =>
+                                                      s.id === row.id ? { ...s, quarterly: e.target.value } : s
+                                                    ),
+                                                  }
+                                                : x
+                                            )
+                                          )
+                                        }
+                                        className="border border-gray-200 text-xs h-7 px-1.5 bg-white w-full"
+                                        placeholder="-"
+                                      />
+                                    </td>
+                                    <td className="px-1.5 py-1.5 align-top bg-white overflow-hidden min-w-[65px]">
                                       <Input
                                         value={row.annual}
                                         onChange={(e) =>
@@ -2209,7 +2214,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                                 setSolutionPackages((prev) =>
                                   prev.map((x) =>
                                     x.id === pkg.id
-                                      ? { ...x, services: [...x.services, { id: genId(), scopeOfWork: '', monthlyQuarterly: '', annual: '', onceOff: '' }] }
+                                      ? { ...x, services: [...x.services, { id: genId(), scopeOfWork: '', monthly: '', quarterly: '', annual: '', onceOff: '' }] }
                                       : x
                                   )
                                 )
@@ -2232,7 +2237,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                             {
                               id: genId(),
                               name: '',
-                              services: [{ id: genId(), scopeOfWork: '', monthlyQuarterly: '', annual: '', onceOff: '' }],
+                              services: [{ id: genId(), scopeOfWork: '', monthly: '', quarterly: '', annual: '', onceOff: '' }],
                             },
                           ])
                         }
