@@ -27,6 +27,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import type { TemplateId } from '@/lib/users'
 import type { SolutionPackage, SolutionPackageServiceRow } from '@/lib/solution-package'
 import { getExperience, getOurTeam } from '@/lib/chat-dummy-data'
@@ -155,6 +161,9 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
   const [feeSummary, setFeeSummary] = useState(defaultFeeSummary)
   const [feeDescriptionEditing, setFeeDescriptionEditing] = useState(false)
   const [feeSummaryEditing, setFeeSummaryEditing] = useState(false)
+  const [isAddOtherServicesOpen, setIsAddOtherServicesOpen] = useState(false)
+  const [addOtherServicesInput, setAddOtherServicesInput] = useState('')
+  const OTHER_SERVICES_NAME = 'Other Services'
   const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'] as const
   const DEFAULT_FOOTER_LABEL1 = '**One-Off Fees**'
   const DEFAULT_FOOTER_LABEL2 =
@@ -840,7 +849,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
             </div>
           </Collapsible>
 
-          {/* Proposal Name */}
+          {/* Proposal Title */}
           {template === 'standard' && (
           <Collapsible open={openSections.proposalName} onOpenChange={() => toggleSection('proposalName')}>
             <div className="group rounded-lg border border-gray-200 bg-white">
@@ -852,7 +861,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                       !openSections.proposalName && '-rotate-90'
                     )}
                   />
-                  <span className="text-sm font-medium text-black">Proposal Name</span>
+                  <span className="text-sm font-medium text-black">Proposal Title</span>
                 </div>
                 <div
                   className="flex h-8 items-center gap-1 px-2 text-sm text-gray-600 hover:text-black"
@@ -871,10 +880,10 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                     <div className="space-y-4">
                       <div>
                         <label className="mb-1 block text-xs font-normal text-black">
-                          Proposal Name
+                          Proposal Title
                         </label>
                         <Input
-                          placeholder="Enter proposal name"
+                          placeholder="Enter proposal title"
                           value={proposalName}
                           onChange={(e) => setProposalName(e.target.value)}
                           className="border-gray-300 text-sm placeholder:text-gray-400"
@@ -897,7 +906,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                   ) : (
                     <dl className="space-y-1 text-sm">
                       <div className="flex gap-2">
-                        <dt className="text-gray-600">Proposal Name:</dt>
+                        <dt className="text-gray-600">Proposal Title:</dt>
                         <dd className="text-gray-900">{proposalName || '-'}</dd>
                       </div>
                     </dl>
@@ -1164,7 +1173,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                       onClick={() => setVasPart1((prev) => [...prev, { description: '', oneOff: 'No charge', recurring: 'No charge' }])}
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add row
+                      Add services
                     </Button>
                   </div>
 
@@ -1281,7 +1290,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                       onClick={() => setVasPart2((prev) => [...prev, { description: '', oneOff: '', recurring: '' }])}
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add row
+                      Add services
                     </Button>
                     <div className="mt-3">
                       <label className="mb-1.5 block text-xs font-normal text-gray-600">Footnotes (Optional)</label>
@@ -1405,7 +1414,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                       }
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add row
+                      Add services
                     </Button>
                   </div>
                 </div>
@@ -1981,7 +1990,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="border-t border-gray-100 px-4 py-4 space-y-4">
-                  {/* Fee description - above Add Service */}
+                  {/* Fee description - above Add other services */}
                   <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
                     <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50">
                       <span className="text-xs font-medium text-black">Fee description</span>
@@ -2017,19 +2026,10 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                       variant="outline"
                       size="sm"
                       className="border-gray-300 text-black hover:bg-gray-50 text-xs h-8"
-                      onClick={() =>
-                        setSolutionPackages((prev) => [
-                          ...prev,
-                          {
-                            id: genId(),
-                            name: '',
-                            services: [{ id: genId(), scopeOfWork: '', monthly: '', quarterly: '', annual: '', onceOff: '' }],
-                          },
-                        ])
-                      }
+                      onClick={() => setIsAddOtherServicesOpen(true)}
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add Service
+                      Add other services
                     </Button>
                   ) : (
                     <>
@@ -2221,7 +2221,7 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                               }
                             >
                               <Plus className="h-3 w-3 mr-1" />
-                              Add Row
+                              Add services
                             </Button>
                           </div>
                         </div>
@@ -2231,24 +2231,15 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
                         variant="outline"
                         size="sm"
                         className="border-gray-300 text-black hover:bg-gray-50 text-xs h-8"
-                        onClick={() =>
-                          setSolutionPackages((prev) => [
-                            ...prev,
-                            {
-                              id: genId(),
-                              name: '',
-                              services: [{ id: genId(), scopeOfWork: '', monthly: '', quarterly: '', annual: '', onceOff: '' }],
-                            },
-                          ])
-                        }
+                        onClick={() => setIsAddOtherServicesOpen(true)}
                       >
                         <Plus className="h-3 w-3 mr-1" />
-                        Add Service
+                        Add other services
                       </Button>
                     </>
                   )}
 
-                  {/* Fee Summary - below Add Service */}
+                  {/* Fee Summary - below Add other services */}
                   <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
                     <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50">
                       <span className="text-xs font-medium text-black">Fee Summary</span>
@@ -2283,6 +2274,103 @@ export function ProposalPreview({ template = 'audit', solutionPackages: solution
           </Collapsible>
             )
           })()}
+
+          {/* Add other services modal - standard template only */}
+          {template === 'standard' && (
+          <Dialog open={isAddOtherServicesOpen} onOpenChange={setIsAddOtherServicesOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add other services</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                {/* Top area: added custom services */}
+                {(solutionPackages.find((p) => p.name === OTHER_SERVICES_NAME)?.services ?? []).length > 0 && (
+                  <div className="space-y-4">
+                    <div className="text-xs font-medium text-gray-700">Added services</div>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {(solutionPackages.find((p) => p.name === OTHER_SERVICES_NAME)?.services ?? []).map((row) => (
+                        <div key={row.id} className="flex items-center justify-between rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+                          <span className="text-gray-900">{row.scopeOfWork || '(empty)'}</span>
+                          <Check className="h-4 w-4 text-green-600 shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Input + Add */}
+                <div className="flex gap-2">
+                  <Input
+                    value={addOtherServicesInput}
+                    onChange={(e) => setAddOtherServicesInput(e.target.value)}
+                    placeholder="Enter custom service name"
+                    className="flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && addOtherServicesInput.trim()) {
+                        e.preventDefault()
+                        const name = addOtherServicesInput.trim()
+                        const otherPkg = solutionPackages.find((p) => p.name === OTHER_SERVICES_NAME)
+                        if (otherPkg) {
+                          setSolutionPackages((prev) =>
+                            prev.map((p) =>
+                              p.id === otherPkg.id
+                                ? { ...p, services: [...p.services, { id: genId(), scopeOfWork: name, monthly: '', quarterly: '', annual: '', onceOff: '' }] }
+                                : p
+                            )
+                          )
+                        } else {
+                          setOpenSections((prev) => ({ ...prev, solutionPackage: true }))
+                          setSolutionPackages((prev) => [
+                            ...prev,
+                            {
+                              id: genId(),
+                              name: OTHER_SERVICES_NAME,
+                              services: [{ id: genId(), scopeOfWork: name, monthly: '', quarterly: '', annual: '', onceOff: '' }],
+                            },
+                          ])
+                        }
+                        setAddOtherServicesInput('')
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="shrink-0"
+                    disabled={!addOtherServicesInput.trim()}
+                    onClick={() => {
+                      const name = addOtherServicesInput.trim()
+                      if (!name) return
+                      const otherPkg = solutionPackages.find((p) => p.name === OTHER_SERVICES_NAME)
+                      if (otherPkg) {
+                        setSolutionPackages((prev) =>
+                          prev.map((p) =>
+                            p.id === otherPkg.id
+                              ? { ...p, services: [...p.services, { id: genId(), scopeOfWork: name, monthly: '', quarterly: '', annual: '', onceOff: '' }] }
+                              : p
+                          )
+                        )
+                      } else {
+                        setOpenSections((prev) => ({ ...prev, solutionPackage: true }))
+                        setSolutionPackages((prev) => [
+                          ...prev,
+                          {
+                            id: genId(),
+                            name: OTHER_SERVICES_NAME,
+                            services: [{ id: genId(), scopeOfWork: name, monthly: '', quarterly: '', annual: '', onceOff: '' }],
+                          },
+                        ])
+                      }
+                      setAddOtherServicesInput('')
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          )}
 
           {/* Payment Option (Optional) - standard template only */}
           {template === 'standard' && (

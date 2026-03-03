@@ -14,7 +14,7 @@ interface DynamicTableBuilderProps {
   initialData?: string[][]
   /** When true, first row is styled as header and has no remove button; Remove Table keeps first row when it exists */
   firstRowIsHeader?: boolean
-  /** When provided, render this instead of the default "Add Row" button below the table */
+  /** When provided, render this instead of the default "Add services" button below the table */
   customAddContent?: React.ReactNode
   /** Optional label text shown above the table; defaults to "Table (Optional)" */
   label?: string
@@ -209,7 +209,7 @@ export function DynamicTableBuilder({
               className="flex items-center gap-1 text-sm text-gray-900 hover:text-black"
             >
               <Plus className="h-5 w-5 rounded-full border border-gray-400" />
-              Add Row
+              Add services
             </button>
           )}
         </div>
